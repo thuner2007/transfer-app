@@ -41,7 +41,7 @@ services:
           nocopy: false
     command: server /data --console-address :9001
     env_file:
-      - ./minio.env
+      - ./.env
     ports:
       - "9000:9000"
       - "9001:9001"

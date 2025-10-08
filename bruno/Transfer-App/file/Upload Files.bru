@@ -1,0 +1,20 @@
+meta {
+  name: Upload Files
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/file
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  files: @file(C:\Users\taawaco3\Downloads\transfer_app_mockup.png)
+  files: @file(C:\Users\taawaco3\Downloads\businessman-consulting-investment-and-financial-planning-.webp)
+}
+
+settings {
+  encodeUrl: true
+}

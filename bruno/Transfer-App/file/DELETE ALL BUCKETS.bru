@@ -1,0 +1,15 @@
+meta {
+  name: DELETE ALL BUCKETS
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{server}}/file
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

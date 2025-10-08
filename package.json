@@ -11,6 +11,8 @@
   "dependencies": {
     "@prisma/client": "^6.17.0",
     "@prisma/extension-accelerate": "^2.0.2",
+    "@types/minio": "^7.1.0",
+    "minio": "^8.0.6",
     "next": "15.5.4",
     "npm": "^11.6.1",
     "react": "19.1.0",
