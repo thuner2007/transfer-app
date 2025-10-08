@@ -1,0 +1,47 @@
+{
+  "name": "Transfer App",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "application",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "mikestead.dotenv",
+        "esbenp.prettier-vscode",
+        "mechatroner.rainbow-csv",
+        "wayou.vscode-todo-highlight",
+        "xshrim.txt-syntax",
+        "yzhang.markdown-all-in-one",
+        "vivaxy.vscode-conventional-commits",
+        "humao.rest-client",
+        "chakrounanas.turbo-console-log"
+      ]
+    }
+  },
+  "forwardPorts": [1337, 5439, 9000, 9001],
+  "portsAttributes": {
+    "5439": {
+      "label": "TimescaleDB",
+      "onAutoForward": "silent"
+    },
+    "1337": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "9000": {
+      "label": "Minio API",
+      "onAutoForward": "notify"
+    },
+    "9001": {
+      "label": "Minio Console",
+      "onAutoForward": "notify"
+    }
+  },
+  "initializeCommand": "if [ ! -f .npmrc ]; then cp ~/.npmrc .npmrc 2>/dev/null || true; fi",
+  "postCreateCommand": "bash -i .devcontainer/init.sh",
+  "remoteUser": "node"
+}

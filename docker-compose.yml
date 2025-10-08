@@ -1,0 +1,67 @@
+version: "3.7"
+
+networks:
+  transfer-app-network:
+    name: transfer-app-network
+    driver: bridge
+
+volumes:
+  transfer-app-timescaledb__data:
+    driver: local
+  transfer-app-minio-latest__data:
+    driver: local
+
+services:
+  # Main application container
+  application:
+    container_name: transfer-app-application
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace:cached # Changed from .. to .
+      - /var/run/docker.sock:/var/run/docker-host.sock
+    networks:
+      - transfer-app-network
+    ports:
+      - "1337:1337"
+    command: sleep infinity
+
+  # Minio
+  transfer-app-minio:
+    container_name: transfer-app-minio
+    image: minio/minio:latest
+    networks:
+      - transfer-app-network
+    volumes:
+      - type: volume
+        source: transfer-app-minio-latest__data
+        target: /data
+        volume:
+          nocopy: false
+    command: server /data --console-address :9001
+    env_file:
+      - ./minio.env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  # TimescaleDB
+  transfer-app-timescaledb:
+    container_name: transfer-app-timescaledb
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      - POSTGRES_USER=cwx_dev
+      - POSTGRES_PASSWORD=cwx_password
+      - POSTGRES_DB=transfer_app
+    ports:
+      - "5439:5432"
+    restart: unless-stopped
+    networks:
+      - transfer-app-network
+    volumes:
+      - type: volume
+        source: transfer-app-timescaledb__data
+        target: /var/lib/postgresql/data
+        volume:
+          nocopy: false
