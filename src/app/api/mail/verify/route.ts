@@ -1,6 +1,8 @@
 import { PrismaClient } from "../../../../generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+// Import cleanup service to auto-start it
+import "../../../../cleanup-service";
 
 const prismaService = new PrismaClient();
 
