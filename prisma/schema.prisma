@@ -18,3 +18,12 @@ model collection {
   id           String   @id @default(uuid())
   downloadlink String?
 }
+
+model verification {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  code      Int
+  verified  Boolean  @default(false)
+  validUntil DateTime @default(now()) @db.Timestamp(6)
+  createdAt DateTime @default(now())
+}

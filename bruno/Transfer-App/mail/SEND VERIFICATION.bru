@@ -1,0 +1,15 @@
+meta {
+  name: SEND VERIFICATION
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/mail/send-verification
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

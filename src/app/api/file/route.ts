@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     return Response.json({
       message: "Files uploaded successfully",
-      files,
+      downloadUrl: downloadUrl,
     });
   } catch (error) {
     console.error("File upload error:", error);
