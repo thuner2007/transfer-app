@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const files = formData.getAll("files");
     const creator = formData.get("creator") as string | null;
+    const password = formData.get("password") as string | null;
     if (files.length === 0) {
       return Response.json({ error: "No files uploaded" }, { status: 400 });
     }
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
     const downloadUrl =
       process.env.DOWNLOAD_SERVICE_URL + "d/" + collectionUuid;
 
+    // Save collection metadata to database
     await prismaService.collection.create({
       data: {
         id: collectionUuid,
@@ -31,6 +33,8 @@ export async function POST(request: Request) {
           if (typeof file === "string") return total;
           return total + (file as File).size;
         }, 0),
+        password: password || null,
+        hasPassword: !!password,
       },
     });
 

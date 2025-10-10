@@ -28,6 +28,8 @@ export default function Home() {
   const [userMail, setUserMail] = useState<string>("");
   const [receiverMail, setReceiverMail] = useState<string>("");
   const [verificationError, setVerificationError] = useState<string>("");
+  const [passwordInput, setPasswordInput] = useState<string>("");
+  const [passwordRequired, setPasswordRequired] = useState<boolean>(false);
 
   const handleLanguageChange = () => {};
 
@@ -399,6 +401,9 @@ export default function Home() {
     Array.from(selectedFiles).forEach((file) => {
       formData.append("creator", mail);
       formData.append("files", file);
+      if (passwordRequired && passwordInput) {
+        formData.append("password", passwordInput);
+      }
     });
 
     try {
@@ -644,12 +649,24 @@ export default function Home() {
               {/* Password input with checkbox */}
               <div className="flex items-center border border-gray-400 p-2 rounded-md w-full mt-2">
                 <input
+                  checked={passwordRequired}
+                  onChange={() => {
+                    setPasswordRequired(!passwordRequired);
+                    if (passwordRequired) {
+                      setPasswordInput("");
+                    }
+                  }}
                   type="checkbox"
                   className="mr-2 w-5 h-5 rounded-md appearance-none border border-gray-400 checked:bg-blue-500 checked:border-blue-500 relative checked:after:content-['✕'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:w-full checked:after:h-full"
                 />
                 <input
+                  disabled={!passwordRequired}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
                   type="password"
-                  className="flex-1 outline-none"
+                  className={`flex-1 outline-none p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                    passwordRequired ? "bg-white" : "cursor-not-allowed"
+                  }`}
                   placeholder="Password"
                 />
               </div>

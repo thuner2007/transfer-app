@@ -16,8 +16,14 @@ export async function GET(request: Request) {
   });
 
   if (!collectionEntry) {
-    return new Response("File entry not found", { status: 404 });
+    return new Response("Collection not found", { status: 404 });
   }
 
-  return new Response(JSON.stringify(collectionEntry), { status: 200 });
+  // Remove password from the response
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password, ...collectionWithoutPassword } = collectionEntry;
+
+  return new Response(JSON.stringify(collectionWithoutPassword), {
+    status: 200,
+  });
 }

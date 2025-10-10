@@ -22,6 +22,7 @@ interface CollectionData {
     mimetype: string;
     size: number;
   }[];
+  hasPassword: boolean;
   createdAt: string;
 }
 
@@ -31,6 +32,9 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
     {} as CollectionData
   );
+  const [openPasswordModal, setOpenPasswordModal] = React.useState(false);
+  const [passwordInput, setPasswordInput] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
 
   const getFileIcon = (mimeType: string) => {
     // Image files
@@ -250,26 +254,45 @@ export default function DownloadPage({ params }: DownloadPageProps) {
     }
   };
 
-  useEffect(() => {
-    async function fetchDownloadInfo() {
-      // Get download information from backend
-      try {
-        const response = await axios.get(
-          `${backendUrl}/file/info?collectionId=${collectionId}`,
-          {}
-        );
-        console.log("Download info:", response.data);
-        setCollectionData(response.data);
-      } catch (err) {
-        console.error("Failed to fetch download info:", err);
-      }
+  async function fetchDownloadInfo() {
+    // Get download information from backend
+    try {
+      const response = await axios.get(
+        `${backendUrl}/file/info?collectionId=${collectionId}`,
+        {}
+      );
+      console.log("Download info:", response.data);
+      setCollectionData(response.data);
+    } catch (err) {
+      console.error("Failed to fetch download info:", err);
     }
-    fetchDownloadInfo();
-  }, [collectionId]);
+  }
+
+  const checkPassword = async () => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/file/check-password?collectionId=${collectionId}`
+      );
+      console.log("Password check response:", response.data);
+      if (response.data.hasPassword) {
+        setOpenPasswordModal(true);
+      } else {
+        fetchDownloadInfo();
+      }
+    } catch (err) {
+      console.error("Failed to check password requirement:", err);
+    }
+  };
+
+  useEffect(() => {
+    // Check if it has password
+    checkPassword();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex items-start pt-32 justify-center w-screen h-screen">
-      <div className="px-8 py-6 flex items-center justify-center w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
+      <div className="px-8 py-6 flex items-start justify-center w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
         <div className="w-full h-full flex-col flex items-start justify-start gap-6">
           <div>
             <h1 className="text-3xl font-bold w-full">Download Files</h1>
@@ -365,6 +388,84 @@ export default function DownloadPage({ params }: DownloadPageProps) {
           )}
         </div>
       </div>
+      {openPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-2xl font-bold mb-4">
+              This download is password protected!
+            </h2>
+            <p className="mb-4">
+              Please enter the password to access the files.
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="text"
+                value={passwordInput}
+                placeholder="Enter password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-widest"
+                onChange={(e) => {
+                  setPasswordInput(e.target.value);
+                }}
+              />
+            </div>
+
+            {passwordError && (
+              <p className="text-red-500 mb-4">{passwordError}</p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setOpenPasswordModal(false)}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await axios.post(
+                      `${backendUrl}/file/check-password/password-validation`,
+                      {
+                        collectionId: collectionId,
+                        password: passwordInput,
+                      }
+                    );
+                    console.log("Password verify response:", response.data);
+                    if (response.data.verified) {
+                      setOpenPasswordModal(false);
+                      fetchDownloadInfo();
+                    } else {
+                      setPasswordError(
+                        response.data.error ||
+                          "Incorrect password. Please try again."
+                      );
+                    }
+                  } catch (err) {
+                    console.error("Failed to verify password:", err);
+                    if (axios.isAxiosError(err) && err.response?.data?.error) {
+                      setPasswordError(err.response.data.error);
+                    } else {
+                      setPasswordError(
+                        "Error verifying password. Please try again."
+                      );
+                    }
+                  }
+                }}
+                className={
+                  "flex-1 font-bold py-2 px-4 rounded-md transition-colors bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                }
+              >
+                Verify
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/** Email verification modal */}
     </div>
   );
 }

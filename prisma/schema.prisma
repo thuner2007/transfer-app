@@ -21,6 +21,8 @@ model collection {
   fileCount   Int      @default(0)
   filesSize  Int      @default(0) // in bytes
   files       file[]
+  hasPassword Boolean  @default(false)
+  password   String?
   createdAt    DateTime @default(now())
 }
 
