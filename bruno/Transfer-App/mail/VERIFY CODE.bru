@@ -6,8 +6,15 @@ meta {
 
 post {
   url: {{server}}/mail/verify
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "code": 451901,
+    "email": "thuner2007@outlook.com"
+  }
 }
 
 settings {

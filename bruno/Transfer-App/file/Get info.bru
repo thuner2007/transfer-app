@@ -5,9 +5,19 @@ meta {
 }
 
 get {
-  url: {{server}}/file/info
+  url: {{server}}/file/info?collectionId=08fd1950-2d87-40f6-a9a1-88be04d1269e
   body: none
   auth: inherit
+}
+
+params:query {
+  collectionId: 08fd1950-2d87-40f6-a9a1-88be04d1269e
+}
+
+body:json {
+  {
+    "collectionId": "08fd1950-2d87-40f6-a9a1-88be04d1269e"
+  }
 }
 
 settings {

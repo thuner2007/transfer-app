@@ -5,9 +5,15 @@ meta {
 }
 
 post {
-  url: {{server}}/mail/send-verification
-  body: none
+  url: {{server}}/mail/send
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "email": "thuner2007@outlook.com"
+  }
 }
 
 settings {
