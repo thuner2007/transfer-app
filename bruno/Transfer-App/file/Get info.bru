@@ -1,0 +1,15 @@
+meta {
+  name: Get info
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{server}}/file/info
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

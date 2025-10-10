@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "collection" ADD COLUMN     "fileCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "filesSize" INTEGER NOT NULL DEFAULT 0;

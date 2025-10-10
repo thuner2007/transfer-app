@@ -17,6 +17,21 @@ datasource db {
 model collection {
   id           String   @id @default(uuid())
   downloadlink String?
+  creator      String @default("anonymous")
+  fileCount   Int      @default(0)
+  filesSize  Int      @default(0) // in bytes
+  files       file[]
+  createdAt    DateTime @default(now())
+}
+
+model file {
+  id           String   @id @default(uuid())
+  filename     String
+  mimetype     String
+  size         Int      // in bytes
+  collection   collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String
+  createdAt    DateTime @default(now())
 }
 
 model verification {

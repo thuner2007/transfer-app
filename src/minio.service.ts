@@ -1,4 +1,6 @@
 import * as Minio from "minio";
+import archiver from "archiver";
+
 export class MinioService {
   private minioClient: Minio.Client;
 
@@ -80,6 +82,49 @@ export class MinioService {
     }
   }
 
+  async downloadAllFilesAsZip(
+    bucketName: string
+  ): Promise<NodeJS.ReadableStream | null> {
+    try {
+      const exists = await this.minioClient.bucketExists(bucketName);
+      if (!exists) {
+        console.log(`Bucket ${bucketName} does not exist`);
+        return null;
+      }
+
+      // Create a zip archive
+      const archive = archiver("zip", {
+        zlib: { level: 9 }, // Maximum compression
+      });
+
+      // List all objects in the bucket
+      const objectsStream = this.minioClient.listObjectsV2(
+        bucketName,
+        "",
+        true
+      );
+
+      // Add each file to the archive
+      for await (const obj of objectsStream) {
+        const objectStream = await this.minioClient.getObject(
+          bucketName,
+          obj.name
+        );
+        archive.append(objectStream, { name: obj.name });
+      }
+
+      // Finalize the archive
+      archive.finalize();
+
+      return archive;
+    } catch (error) {
+      console.error("Error downloading files as zip:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to download files: ${errorMessage}`);
+    }
+  }
+
   async deleteBucket(bucketName: string): Promise<void> {
     try {
       const exists = await this.minioClient.bucketExists(bucketName);
@@ -125,6 +170,28 @@ export class MinioService {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to delete all buckets: ${errorMessage}`);
+    }
+  }
+
+  async downloadFile(
+    bucketName: string,
+    fileName: string
+  ): Promise<NodeJS.ReadableStream | null> {
+    try {
+      const exists = await this.minioClient.bucketExists(bucketName);
+      if (!exists) {
+        console.log(`Bucket ${bucketName} does not exist`);
+        return null;
+      }
+
+      // Get the file stream
+      const fileStream = await this.minioClient.getObject(bucketName, fileName);
+      return fileStream;
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to download file: ${errorMessage}`);
     }
   }
 

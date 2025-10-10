@@ -1,0 +1,15 @@
+meta {
+  name: VERIFY CODE
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{server}}/mail/verify
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
