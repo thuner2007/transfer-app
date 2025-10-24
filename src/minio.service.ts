@@ -204,6 +204,38 @@ export class MinioService {
     mimetype: string;
   }> {
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Extract folder structure from file name if it contains "/"
+    let objectKey = file.name;
+    let actualFileName = file.name;
+
+    if (file.name.includes("/")) {
+      // Get folder path from file name (e.g., "folder1/folder2/file.txt" -> "folder1/folder2")
+      const folderPath = file.name.substring(0, file.name.lastIndexOf("/"));
+      // Get actual file name (e.g., "folder1/folder2/file.txt" -> "file.txt")
+      actualFileName = file.name.substring(file.name.lastIndexOf("/") + 1);
+
+      // Split folder path and clean each part
+      const folderParts = folderPath
+        .split("/")
+        .filter((part) => part.trim() !== "");
+      const cleanedFolders: string[] = [];
+
+      for (const part of folderParts) {
+        // Clean each folder name (remove special characters, etc.)
+        const cleanedPart = part.trim().replace(/[^a-zA-Z0-9\-_]/g, "");
+        if (cleanedPart) {
+          cleanedFolders.push(cleanedPart);
+        }
+      }
+
+      if (cleanedFolders.length > 0) {
+        objectKey = `${cleanedFolders.join("/")}/${actualFileName}`;
+      } else {
+        objectKey = actualFileName;
+      }
+    }
+
     const metaData = {
       "Content-Type": file.type,
       "Content-Length": file.size.toString(),
@@ -218,17 +250,17 @@ export class MinioService {
         console.log(`Bucket ${bucketName} doesn't exist.`);
       }
 
-      // Upload file
+      // Upload file with folder structure if provided
       await this.minioClient.putObject(
         bucketName,
-        file.name,
+        objectKey,
         buffer,
         file.size,
         metaData
       );
 
       return {
-        fileName: file.name,
+        fileName: objectKey,
         size: file.size,
         mimetype: file.type,
       };

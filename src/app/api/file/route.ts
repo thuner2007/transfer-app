@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     const files = formData.getAll("files");
     const creator = formData.get("creator") as string | null;
     const password = formData.get("password") as string | null;
+    const expirationTime = formData.get("expirationTime") as string | null;
     if (files.length === 0) {
       return Response.json({ error: "No files uploaded" }, { status: 400 });
     }
@@ -35,6 +36,9 @@ export async function POST(request: Request) {
         }, 0),
         password: password || null,
         hasPassword: !!password,
+        expirationTime: expirationTime
+          ? new Date(expirationTime)
+          : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // Default 3 days
       },
     });
 
@@ -47,6 +51,9 @@ export async function POST(request: Request) {
       if (typeof file === "string") {
         continue; // Skip non-file entries
       }
+
+      console.log("Uploading file:", file.name);
+
       await minioService.uploadFile(collectionUuid, file);
       await prismaService.file.create({
         data: {

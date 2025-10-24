@@ -1,29 +1,34 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { formatFileSize } from "../../../lib/formating/formatFileSize";
+import { handleDownloadFile } from "../../../lib/download/handleDownloadFile";
+import { BACKEND_URL, ERROR_MESSAGES } from "../../../lib/api/constants";
+import { getFileIcon } from "../../../lib/formating/getFileIcon";
+import { CollectionData } from "../../../lib/interfaces/CollectionData.interface";
+import { sendDownloadNotification } from "../../../lib/download/sendDownloadNotification";
+import BreadcrumbNavigation from "../../../components/Homepage/BreadcrumbNavigation";
+import { useNavigateToFolder } from "../../../hooks/useNavigateToFolder";
+import { useGetCurrentFolderItems } from "../../../hooks/useGetCurrentFolderItems";
 
-const backendUrl =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+// Download-specific interfaces
+interface DownloadFolderItem {
+  id: string;
+  name: string;
+  type: "folder" | "file";
+  children?: DownloadFolderItem[];
+  file?: {
+    filename: string;
+    size: number;
+    mimetype: string;
+  };
+  parentPath: string;
+}
 
 interface DownloadPageProps {
   params: {
     collectionId: string;
   };
-}
-
-interface CollectionData {
-  id: string;
-  creator: string;
-  fileCount: number;
-  filesSize: number;
-  files: {
-    id: string;
-    filename: string;
-    mimetype: string;
-    size: number;
-  }[];
-  hasPassword: boolean;
-  createdAt: string;
 }
 
 export default function DownloadPage({ params }: DownloadPageProps) {
@@ -32,194 +37,93 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
     {} as CollectionData
   );
-  const [openPasswordModal, setOpenPasswordModal] = React.useState(false);
-  const [passwordInput, setPasswordInput] = React.useState("");
-  const [passwordError, setPasswordError] = React.useState("");
+  const [openPasswordModal, setOpenPasswordModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  const getFileIcon = (mimeType: string) => {
-    // Image files
-    if (
-      mimeType.startsWith("image/") ||
-      ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp"].includes(mimeType)
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-green-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
+  const [hasSentDownloadNotification, setHasSentDownloadNotification] =
+    useState(false);
 
-    // Video files
-    if (
-      mimeType.startsWith("video/") ||
-      ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv"].includes(mimeType)
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-red-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-        </svg>
-      );
-    }
+  // Folder navigation state
+  const { currentFolderPath, breadcrumbs, navigateToFolder } =
+    useNavigateToFolder();
+  const [folderStructure, setFolderStructure] = React.useState<
+    DownloadFolderItem[]
+  >([]);
 
-    // Audio files
-    if (
-      mimeType.startsWith("audio/") ||
-      ["mp3", "wav", "flac", "aac", "ogg", "wma"].includes(mimeType)
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-purple-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
-        </svg>
-      );
-    }
+  const getCurrentFolderItems = useGetCurrentFolderItems(
+    folderStructure,
+    currentFolderPath
+  );
 
-    // PDF files
-    if (mimeType === "application/pdf" || mimeType === "pdf") {
-      return (
-        <svg
-          className="w-8 h-8 text-red-600"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
+  // Helper function to build folder structure from file paths
+  const buildFolderStructure = (
+    files: { filename: string; size: number; mimetype: string }[]
+  ): DownloadFolderItem[] => {
+    const root: DownloadFolderItem[] = [];
 
-    // Archive files
-    if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(mimeType)) {
-      return (
-        <svg
-          className="w-8 h-8 text-yellow-600"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
+    files.forEach((file) => {
+      const pathParts = file.filename.split("/");
+      const fileName = pathParts[pathParts.length - 1];
+      const folderParts = pathParts.slice(0, -1);
 
-    // Document files
-    if (
-      ["doc", "docx", "txt", "rtf", "odt"].includes(mimeType) ||
-      mimeType.includes("document") ||
-      mimeType.includes("text")
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-blue-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
+      let currentLevel = root;
+      let currentPath = "";
 
-    // Spreadsheet files
-    if (
-      ["xls", "xlsx", "csv", "ods"].includes(mimeType) ||
-      mimeType.includes("spreadsheet")
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-green-600"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
+      // Create folder structure
+      folderParts.forEach((folderName: string, index: number) => {
+        currentPath = currentPath ? `${currentPath}/${folderName}` : folderName;
 
-    // Code files
-    if (
-      [
-        "js",
-        "ts",
-        "jsx",
-        "tsx",
-        "html",
-        "css",
-        "scss",
-        "py",
-        "java",
-        "cpp",
-        "c",
-        "php",
-        "rb",
-        "go",
-        "rs",
-      ].includes(mimeType)
-    ) {
-      return (
-        <svg
-          className="w-8 h-8 text-indigo-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    }
-  };
+        let folder = currentLevel.find(
+          (item) => item.name === folderName && item.type === "folder"
+        );
+        if (!folder) {
+          folder = {
+            id: `folder-${currentPath}`,
+            name: folderName,
+            type: "folder",
+            children: [],
+            parentPath: folderParts.slice(0, index).join("/"),
+          };
+          currentLevel.push(folder);
+        }
+        currentLevel = folder.children!;
+      });
 
-  const formatFileSize = (size: number): string => {
-    if (size < 1024) return `${size} B`;
-    else if (size < 1024 * 1024)
-      return `${(size / 1024).toFixed(2).replace(/\.00$/, "")} KB`;
-    else if (size < 1024 * 1024 * 1024)
-      return `${(size / (1024 * 1024)).toFixed(2).replace(/\.00$/, "")} MB`;
-    else
-      return `${(size / (1024 * 1024 * 1024))
-        .toFixed(2)
-        .replace(/\.00$/, "")} GB`;
+      // Add file to the appropriate folder
+      const fileItem: DownloadFolderItem = {
+        id: `file-${file.filename}`,
+        name: fileName,
+        type: "file",
+        file: {
+          filename: file.filename,
+          size: file.size,
+          mimetype: file.mimetype,
+        },
+        parentPath: folderParts.join("/"),
+      };
+
+      currentLevel.push(fileItem);
+    });
+
+    return root;
   };
 
   const downloadAll = async () => {
     try {
       const response = await axios.get(
-        `${backendUrl}/file/?collectionId=${collectionId}`,
+        `${BACKEND_URL}/file/?collectionId=${collectionId}`,
         {
           responseType: "blob",
         }
       );
+      // Send download notification
+      if (!hasSentDownloadNotification) {
+        sendDownloadNotification(collectionId);
+        setHasSentDownloadNotification(true);
+      }
+
+      // Create a link to download the ZIP file
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -227,30 +131,9 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading all files:", error);
-    }
-  };
-
-  const handleDownloadFile = async (filename: string, collectionId: string) => {
-    try {
-      const response = await axios.get(
-        `${backendUrl}/file/single?collectionId=${collectionId}&filename=${encodeURIComponent(
-          filename
-        )}`,
-        {
-          responseType: "blob",
-        }
-      );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading file:", error);
+      console.error(ERROR_MESSAGES.DOWNLOAD_ALL_FAILED, error);
     }
   };
 
@@ -258,20 +141,25 @@ export default function DownloadPage({ params }: DownloadPageProps) {
     // Get download information from backend
     try {
       const response = await axios.get(
-        `${backendUrl}/file/info?collectionId=${collectionId}`,
-        {}
+        `${BACKEND_URL}/file/info?collectionId=${collectionId}`
       );
       console.log("Download info:", response.data);
       setCollectionData(response.data);
+
+      // Build folder structure from files
+      if (response.data.files && response.data.files.length > 0) {
+        const structure = buildFolderStructure(response.data.files);
+        setFolderStructure(structure);
+      }
     } catch (err) {
-      console.error("Failed to fetch download info:", err);
+      console.error(ERROR_MESSAGES.FETCH_INFO_FAILED, err);
     }
   }
 
   const checkPassword = async () => {
     try {
       const response = await axios.post(
-        `${backendUrl}/file/check-password?collectionId=${collectionId}`
+        `${BACKEND_URL}/file/check-password?collectionId=${collectionId}`
       );
       console.log("Password check response:", response.data);
       if (response.data.hasPassword) {
@@ -280,12 +168,11 @@ export default function DownloadPage({ params }: DownloadPageProps) {
         fetchDownloadInfo();
       }
     } catch (err) {
-      console.error("Failed to check password requirement:", err);
+      console.error(ERROR_MESSAGES.PASSWORD_CHECK_FAILED, err);
     }
   };
 
   useEffect(() => {
-    // Check if it has password
     checkPassword();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -304,18 +191,11 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 416.979 416.979"
               >
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g
-                  id="SVGRepo_tracerCarrier"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                ></g>
-                <g id="SVGRepo_iconCarrier">
-                  {" "}
+                <g stroke-linecap="round" stroke-linejoin="round"></g>
+                <g>
                   <g>
-                    {" "}
                     <path d="M356.004,61.156c-81.37-81.47-213.377-81.551-294.848-0.182c-81.47,81.371-81.552,213.379-0.181,294.85 c81.369,81.47,213.378,81.551,294.849,0.181C437.293,274.636,437.375,142.626,356.004,61.156z M237.6,340.786 c0,3.217-2.607,5.822-5.822,5.822h-46.576c-3.215,0-5.822-2.605-5.822-5.822V167.885c0-3.217,2.607-5.822,5.822-5.822h46.576 c3.215,0,5.822,2.604,5.822,5.822V340.786z M208.49,137.901c-18.618,0-33.766-15.146-33.766-33.765 c0-18.617,15.147-33.766,33.766-33.766c18.619,0,33.766,15.148,33.766,33.766C242.256,122.755,227.107,137.901,208.49,137.901z"></path>{" "}
-                  </g>{" "}
+                  </g>
                 </g>
               </svg>
               <p className="text-gray-700">{`${
@@ -333,57 +213,121 @@ export default function DownloadPage({ params }: DownloadPageProps) {
           >
             Download All (ZIP)
           </button>
-          {collectionData?.filesSize > 0 && (
-            <div className="w-full border border-gray-400 px-4 rounded-md">
-              {Array.from(collectionData.files).map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-2 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    {getFileIcon(file.mimetype)}
-                    <div className="flex flex-col">
-                      <span className="text-gray-700">{file.filename}</span>
-                      <span className="text-gray-400 text-xs">
-                        {formatFileSize(file.size)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className="text-gray-500 text-sm cursor-pointer"
-                      onClick={() => {
-                        handleDownloadFile(file.filename, collectionId);
-                      }}
+
+          {/* Breadcrumb Navigation */}
+          <BreadcrumbNavigation
+            breadcrumbs={breadcrumbs}
+            navigateToFolder={navigateToFolder}
+          />
+
+          {/* Folder Structure Display */}
+          {folderStructure.length > 0 && (
+            <div className="w-full border border-gray-400 px-4 rounded-md min-h-[200px]">
+              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                <h5 className="text-gray-700 font-medium">Files & Folders</h5>
+              </div>
+
+              <div className="py-2">
+                {getCurrentFolderItems.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">
+                    No files or folders
+                  </p>
+                ) : (
+                  getCurrentFolderItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between py-2 hover:bg-gray-50 transition-colors"
                     >
-                      <svg
-                        className="w-6 h-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g
-                          id="SVGRepo_tracerCarrier"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        ></g>
-                        <g id="SVGRepo_iconCarrier">
-                          {" "}
-                          <path
-                            d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
-                            fill="#1C274C"
-                          ></path>{" "}
-                          <path
-                            d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
-                            fill="#1C274C"
-                          ></path>{" "}
-                        </g>
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-              ))}
+                      <div className="flex items-center gap-2">
+                        {item.type === "folder" ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-yellow-500 cursor-pointer"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            onClick={() => {
+                              const newPath = currentFolderPath
+                                ? `${currentFolderPath}/${item.name}`
+                                : item.name;
+                              navigateToFolder(newPath);
+                            }}
+                          >
+                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                          </svg>
+                        ) : (
+                          getFileIcon(item.file?.mimetype || "")
+                        )}
+                        <div className="flex flex-col">
+                          <span
+                            className={`text-gray-700 ${
+                              item.type === "folder"
+                                ? "cursor-pointer hover:text-blue-600"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              if (item.type === "folder") {
+                                const newPath = currentFolderPath
+                                  ? `${currentFolderPath}/${item.name}`
+                                  : item.name;
+                                navigateToFolder(newPath);
+                              }
+                            }}
+                          >
+                            {item.name}
+                          </span>
+                          {item.type === "file" && item.file && (
+                            <span className="text-gray-400 text-xs">
+                              {formatFileSize(item.file.size)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {item.type === "file" && item.file && (
+                        <div className="flex items-center gap-1">
+                          <span
+                            className="text-gray-500 text-sm cursor-pointer"
+                            onClick={() => {
+                              handleDownloadFile(
+                                item.file!.filename,
+                                collectionId
+                              );
+                              if (!hasSentDownloadNotification) {
+                                sendDownloadNotification(collectionId);
+                                setHasSentDownloadNotification(true);
+                              }
+                            }}
+                            title="Download file"
+                          >
+                            <svg
+                              className="w-6 h-6 text-gray-400 hover:text-gray-600"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                              <g
+                                id="SVGRepo_tracerCarrier"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <path
+                                  d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
+                                  fill="currentColor"
+                                />
+                                <path
+                                  d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
+                                  fill="currentColor"
+                                />
+                              </g>
+                            </svg>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -428,20 +372,18 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                 onClick={async () => {
                   try {
                     const response = await axios.post(
-                      `${backendUrl}/file/check-password/password-validation`,
+                      `${BACKEND_URL}/file/check-password/password-validation`,
                       {
                         collectionId: collectionId,
                         password: passwordInput,
                       }
                     );
-                    console.log("Password verify response:", response.data);
                     if (response.data.verified) {
                       setOpenPasswordModal(false);
                       fetchDownloadInfo();
                     } else {
                       setPasswordError(
-                        response.data.error ||
-                          "Incorrect password. Please try again."
+                        response.data.error || ERROR_MESSAGES.PASSWORD_INCORRECT
                       );
                     }
                   } catch (err) {
@@ -449,9 +391,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                     if (axios.isAxiosError(err) && err.response?.data?.error) {
                       setPasswordError(err.response.data.error);
                     } else {
-                      setPasswordError(
-                        "Error verifying password. Please try again."
-                      );
+                      setPasswordError(ERROR_MESSAGES.PASSWORD_VERIFY_FAILED);
                     }
                   }
                 }}
@@ -465,7 +405,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
           </div>
         </div>
       )}
-      {/** Email verification modal */}
     </div>
   );
 }

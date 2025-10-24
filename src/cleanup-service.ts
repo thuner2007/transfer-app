@@ -1,6 +1,8 @@
 import { PrismaClient } from "./generated/prisma";
+import { MinioService } from "./minio.service";
 
 const prismaService = new PrismaClient();
+const minioService = new MinioService();
 
 // Cleanup function to delete expired verification entries
 const cleanupExpiredVerifications = async () => {
@@ -35,7 +37,48 @@ const cleanupExpiredVerifications = async () => {
   }
 };
 
-// Singleton pattern to ensure service starts only once
+// Cleanup function to delete expired download links
+const cleanupExpiredDownloadLinks = async () => {
+  try {
+    const expiredCollections = await prismaService.collection.findMany({
+      where: {
+        expirationTime: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    for (const collection of expiredCollections) {
+      await minioService.deleteBucket(collection.id);
+
+      await prismaService.collection.delete({
+        where: {
+          id: collection.id,
+        },
+      });
+    }
+
+    if (expiredCollections.length > 0) {
+      console.log(
+        `[${new Date().toISOString()}] Cleaned up ${
+          expiredCollections.length
+        } expired download links`
+      );
+    } else {
+      console.log(
+        `[${new Date().toISOString()}] Cleanup check completed - no expired download links found`
+      );
+    }
+
+    return expiredCollections.length;
+  } catch (error) {
+    console.error(
+      `[${new Date().toISOString()}] Error cleaning up expired download links:`,
+      error
+    );
+  }
+};
+
 class CleanupService {
   private static instance: CleanupService;
   private intervalId: NodeJS.Timeout | null = null;
@@ -64,11 +107,13 @@ class CleanupService {
 
     // Run cleanup immediately when service starts
     cleanupExpiredVerifications();
+    cleanupExpiredDownloadLinks();
 
     // Set interval to run every 1 minute (60000 milliseconds)
     this.intervalId = setInterval(async () => {
       await cleanupExpiredVerifications();
-    }, 60000);
+      await cleanupExpiredDownloadLinks();
+    }, 6000);
 
     this.isRunning = true;
   }
