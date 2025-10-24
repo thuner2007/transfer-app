@@ -1,16 +1,35 @@
-import React, { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import React, {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from "react";
+import { formatFileSize } from "../../lib/formating/formatFileSize";
 
 interface FileSelectorProps {
   selectedFiles: FileList | null;
   onFilesSelected: (files: FileList | null) => void;
 }
 
-const FileSelector: React.FC<FileSelectorProps> = ({ selectedFiles, onFilesSelected }) => {
+const MAX_TOTAL_FILE_SIZE = 50 * 1024 * 1024 * 1024; // 50GB
+
+const FileSelector: React.FC<FileSelectorProps> = ({
+  selectedFiles,
+  onFilesSelected,
+}) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [sizeError, setSizeError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const calculateTotalSize = (fileList: FileList): number => {
+    return Array.from(fileList).reduce((total, file) => total + file.size, 0);
+  };
 
   const handleFiles = (files: FileList | null) => {
     if (files && files.length > 0) {
+      // Clear previous error
+      setSizeError("");
+
       const newFiles = Array.from(files);
       const dataTransfer = new DataTransfer();
 
@@ -48,9 +67,27 @@ const FileSelector: React.FC<FileSelectorProps> = ({ selectedFiles, onFilesSelec
         dataTransfer.items.add(newFile);
       });
 
+      // Check total file size
+      const totalSize = calculateTotalSize(dataTransfer.files);
+      if (totalSize > MAX_TOTAL_FILE_SIZE) {
+        setSizeError(
+          `Total file size (${formatFileSize(
+            totalSize
+          )}) exceeds the ${formatFileSize(
+            MAX_TOTAL_FILE_SIZE
+          )} limit. Please select fewer or smaller files.`
+        );
+        return; // Don't update files if size limit exceeded
+      }
+
       onFilesSelected(dataTransfer.files);
 
       console.log("Selected files:", files);
+      console.log(
+        `Total size: ${formatFileSize(totalSize)} / ${formatFileSize(
+          MAX_TOTAL_FILE_SIZE
+        )}`
+      );
       Array.from(files).forEach((file) => {
         console.log(
           `File: ${file.name}, Size: ${file.size}, Type: ${file.type}`
@@ -124,8 +161,52 @@ const FileSelector: React.FC<FileSelectorProps> = ({ selectedFiles, onFilesSelec
             {isDragging ? "Drop files here!" : "Select files"}
           </h2>
           <p className="text-gray-500 text-sm">or drag & drop</p>
+          <p className="text-gray-400 text-xs mt-2">
+            Maximum total size: {}
+            Maximum total size: {formatFileSize(MAX_TOTAL_FILE_SIZE)}
+          </p>
+          {selectedFiles &&
+            selectedFiles.length > 0 &&
+            (() => {
+              const currentSize = calculateTotalSize(selectedFiles);
+              const isNearLimit = currentSize > MAX_TOTAL_FILE_SIZE * 0.8;
+              return (
+                <p
+                  className={`text-xs mt-1 ${
+                    isNearLimit ? "text-yellow-600" : "text-blue-600"
+                  }`}
+                >
+                  Current total: {formatFileSize(currentSize)}
+                  {isNearLimit && " (⚠️ Approaching limit)"}
+                </p>
+              );
+            })()}
         </div>
       </div>
+
+      {/* Error message display */}
+      {sizeError && (
+        <div className="w-full mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+          <div className="flex items-start">
+            <svg
+              className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div>
+              <p className="font-medium text-sm">File Size Error</p>
+              <p className="text-sm">{sizeError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
