@@ -158,7 +158,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
           </h2>
           <p className="text-gray-500 text-sm">or drag & drop</p>
           <p className="text-gray-400 text-xs mt-2">
-            Maximum total size: {}
             Maximum total size: {formatFileSize(MAX_TOTAL_FILE_SIZE)}
           </p>
           {selectedFiles &&

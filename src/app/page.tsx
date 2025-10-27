@@ -350,6 +350,7 @@ export default function Home() {
             <FileManager
               setFilesWithPathsExt={setFilesWithPaths}
               selectedFiles={selectedFiles}
+              onFilesSelected={setSelectedFiles}
             />
           </div>
           <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">

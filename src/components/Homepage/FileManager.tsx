@@ -12,11 +12,13 @@ import { useGetCurrentFolderItems } from "../../hooks/useGetCurrentFolderItems";
 interface FileManagerProps {
   setFilesWithPathsExt: React.Dispatch<React.SetStateAction<FileWithPath[]>>;
   selectedFiles: FileList | null;
+  onFilesSelected: (files: FileList | null) => void;
 }
 
 const FileManager: React.FC<FileManagerProps> = ({
   setFilesWithPathsExt,
   selectedFiles,
+  onFilesSelected,
 }) => {
   const { currentFolderPath, breadcrumbs, navigateToFolder } =
     useNavigateToFolder();
@@ -95,11 +97,30 @@ const FileManager: React.FC<FileManagerProps> = ({
       return deleteFromStructure(prev);
     });
 
-    // If it's a file, also remove from filesWithPaths
+    // If it's a file, also remove from filesWithPaths and selectedFiles
     if (item.type === "file" && item.file) {
       setFilesWithPathsExt((prev) =>
         prev.filter((f) => f.path !== item.file?.path)
       );
+
+      // Update selectedFiles by removing the deleted file
+      if (selectedFiles) {
+        const dataTransfer = new DataTransfer();
+        Array.from(selectedFiles).forEach((file) => {
+          // Only add files that are not the one being deleted
+          // Match by name, size, and last modified time for better accuracy
+          const fileToDelete = item.file?.file;
+          if (
+            !fileToDelete ||
+            file.name !== fileToDelete.name ||
+            file.size !== fileToDelete.size ||
+            file.lastModified !== fileToDelete.lastModified
+          ) {
+            dataTransfer.items.add(file);
+          }
+        });
+        onFilesSelected(dataTransfer.files);
+      }
     }
   };
 
