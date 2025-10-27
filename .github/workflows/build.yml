@@ -80,9 +80,6 @@ jobs:
         with:
           node-version: "20"
 
-      - name: install prod packages
-        run: npm ci --only=production
-
       - name: download artifact
         if: github.ref != 'refs/heads/main' && github.event_name != 'release'
         uses: actions/download-artifact@v4
