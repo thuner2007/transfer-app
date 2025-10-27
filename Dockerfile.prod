@@ -26,9 +26,6 @@ WORKDIR /app
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
 
-# Install only production dependencies
-RUN npm ci --omit=dev
-
 # Copy generated Prisma client from deps stage
 COPY --from=deps --chown=appuser:appgroup /app/src/generated ./src/generated
 
