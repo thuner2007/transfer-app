@@ -18,7 +18,7 @@ FROM node:20-alpine AS production
 
 # Add user and group
 RUN addgroup -g 2000 -S appgroup
-RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
+RUN adduser -D -s /sbin/nologin -u 2000 -G appgroup -S appuser
 
 # Set workdir
 WORKDIR /app
