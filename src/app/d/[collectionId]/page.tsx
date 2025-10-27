@@ -43,6 +43,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
 
   const [hasSentDownloadNotification, setHasSentDownloadNotification] =
     useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Folder navigation state
   const { currentFolderPath, breadcrumbs, navigateToFolder } =
@@ -110,13 +111,20 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   };
 
   const downloadAll = async () => {
+    if (isDownloading) return; // Prevent multiple simultaneous downloads
+
     try {
+      setIsDownloading(true);
+      console.log("Starting download for collection:", collectionId);
+
       const response = await axios.get(
         `${BACKEND_URL}/file/?collectionId=${collectionId}`,
         {
           responseType: "blob",
+          timeout: 300000, // 5 minutes timeout for large files
         }
       );
+
       // Send download notification
       if (!hasSentDownloadNotification) {
         sendDownloadNotification(collectionId);
@@ -132,8 +140,20 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      console.log("Download completed successfully");
     } catch (error) {
       console.error(ERROR_MESSAGES.DOWNLOAD_ALL_FAILED, error);
+      // Show user-friendly error message for large file downloads
+      if (axios.isAxiosError(error) && error.code === "ECONNABORTED") {
+        alert(
+          "Download timeout - the file might be too large. Please try again or contact support."
+        );
+      } else {
+        alert("Download failed. Please try again.");
+      }
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -207,11 +227,40 @@ export default function DownloadPage({ params }: DownloadPageProps) {
           </div>
           <button
             onClick={() => downloadAll()}
+            disabled={isDownloading}
             className={
-              "text-white font-bold text-xl w-1/3 p-3 rounded-md transition-all duration-200  bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
+              isDownloading
+                ? "text-white font-bold text-xl w-1/3 p-3 rounded-md transition-all duration-200 bg-gray-500 cursor-not-allowed"
+                : "text-white font-bold text-xl w-1/3 p-3 rounded-md transition-all duration-200 bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
             }
           >
-            Download All (ZIP)
+            {isDownloading ? (
+              <div className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>Preparing Download...</span>
+              </div>
+            ) : (
+              "Download All (ZIP)"
+            )}
           </button>
 
           {/* Breadcrumb Navigation */}

@@ -19,11 +19,15 @@ export async function GET(request: Request) {
     return new Response("Collection not found", { status: 404 });
   }
 
-  // Remove password from the response
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, ...collectionWithoutPassword } = collectionEntry;
+  const { ...collectionWithoutPassword } = collectionEntry;
 
-  return new Response(JSON.stringify(collectionWithoutPassword), {
+  const serializedCollection = JSON.parse(
+    JSON.stringify(collectionWithoutPassword, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    )
+  );
+
+  return new Response(JSON.stringify(serializedCollection), {
     status: 200,
   });
 }

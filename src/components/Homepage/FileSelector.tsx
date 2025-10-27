@@ -27,7 +27,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
 
   const handleFiles = (files: FileList | null) => {
     if (files && files.length > 0) {
-      // Clear previous error
       setSizeError("");
 
       const newFiles = Array.from(files);
@@ -38,12 +37,10 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         Array.from(selectedFiles).forEach((f) => dataTransfer.items.add(f));
       }
 
-      // Process each new file
       newFiles.forEach((f) => {
         let newName = f.name;
         let counter = 1;
 
-        // Get the base name and extension for proper numbering
         const fileExtension = f.name.includes(".")
           ? f.name.split(".").pop()
           : "";
@@ -77,7 +74,7 @@ const FileSelector: React.FC<FileSelectorProps> = ({
             MAX_TOTAL_FILE_SIZE
           )} limit. Please select fewer or smaller files.`
         );
-        return; // Don't update files if size limit exceeded
+        return;
       }
 
       onFilesSelected(dataTransfer.files);
@@ -127,7 +124,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   };
 
   const handleClick = () => {
-    // Reset the input value before opening file dialog to allow same file selection
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
@@ -213,7 +209,6 @@ const FileSelector: React.FC<FileSelectorProps> = ({
         multiple
         onChange={handleFileChange}
         onFocus={(e) => {
-          // Reset value when input gets focus to allow same file selection
           e.target.value = "";
         }}
         className="hidden"

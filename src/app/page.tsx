@@ -36,6 +36,53 @@ export default function Home() {
 
   const handleLanguageChange = () => {};
 
+  // Edit filename to be good for MinIO storage
+  const sanitizeFilename = (filename: string): string => {
+    // Save the file extension
+    const lastDotIndex = filename.lastIndexOf(".");
+    const name =
+      lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
+    const extension = lastDotIndex > 0 ? filename.substring(lastDotIndex) : "";
+
+    // Replace problematic characters with safe alternatives
+    const sanitizedName =
+      name
+        // Replace spaces with underscores
+        .replace(/\s+/g, "_")
+        // Replace special characters with underscores or remove them
+        .replace(/[^\w\-_.]/g, "_")
+        // Remove multiple consecutive underscores
+        .replace(/_+/g, "_")
+        // Remove leading/trailing underscores
+        .replace(/^_+|_+$/g, "") ||
+      // Ensure it's not empty
+      "file";
+
+    // Edit extension (keep only alphanumeric and the dot)
+    const sanitizedExtension = extension.replace(/[^\w.]/g, "");
+
+    // Limit total filename length to 200 characters (Minio limit is 1024, but we keep it shorter to be safe)
+    const maxLength = 200;
+    const fullName = sanitizedName + sanitizedExtension;
+
+    if (fullName.length > maxLength) {
+      const extensionLength = sanitizedExtension.length;
+      const nameLength = maxLength - extensionLength;
+      return sanitizedName.substring(0, nameLength) + sanitizedExtension;
+    }
+
+    return fullName;
+  };
+
+  // Edit file path (for folders)
+  const sanitizeFilePath = (filePath: string): string => {
+    return filePath
+      .split("/")
+      .map((part) => (part.trim() ? sanitizeFilename(part) : ""))
+      .filter((part) => part !== "")
+      .join("/");
+  };
+
   // Generate QR code when downloadLink changes
   useEffect(() => {
     const generateQRCode = async () => {
@@ -58,6 +105,124 @@ export default function Home() {
       generateQRCode();
     }
   }, [downloadLink]);
+
+  const uploadFileInChunks = async (
+    fileWithPath: FileWithPath,
+    mail: string,
+    collectionId?: string,
+    setDownloadUrlCallback?: (url: string) => void
+  ): Promise<string> => {
+    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+    const file = fileWithPath.file;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const fileId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+
+    // Edit the filename and path
+    const sanitizedPath = sanitizeFilePath(fileWithPath.path);
+    const sanitizedFileName = sanitizeFilename(file.name);
+
+    console.log(
+      `Uploading ${
+        file.name
+      } (sanitized: ${sanitizedFileName}) in ${totalChunks} chunks of ${
+        CHUNK_SIZE / 1024 / 1024
+      }MB each`
+    );
+
+    if (fileWithPath.path !== sanitizedPath) {
+      console.log(
+        `Path sanitized: "${fileWithPath.path}" -> "${sanitizedPath}"`
+      );
+    }
+
+    let currentCollectionId = collectionId;
+
+    for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber++) {
+      const start = chunkNumber * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunkBlob = file.slice(start, end);
+
+      const formData = new FormData();
+      formData.append("isChunked", "true");
+      formData.append("fileId", fileId);
+      formData.append("chunkNumber", chunkNumber.toString());
+      formData.append("totalChunks", totalChunks.toString());
+      formData.append("originalFileName", sanitizedPath);
+      formData.append("totalSize", file.size.toString());
+      formData.append("mimeType", file.type);
+      formData.append("chunk", chunkBlob);
+      formData.append("creator", mail);
+      if (emailNotification) {
+        formData.append("wantsToGetNotified", "true");
+      }
+
+      // Always include settings with first chunk of first file, or for existing collection
+      if (!currentCollectionId || chunkNumber === 0) {
+        formData.append(
+          "expirationTime",
+          new Date(
+            Date.now() + expirationTime * 24 * 60 * 60 * 1000
+          ).toISOString()
+        );
+        if (passwordRequired && passwordInput) {
+          formData.append("password", passwordInput);
+        }
+      }
+
+      if (currentCollectionId) {
+        formData.append("collectionId", currentCollectionId);
+      }
+
+      try {
+        const response = await axios.post(`${BACKEND_URL}/file`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data.collectionId && !currentCollectionId) {
+          currentCollectionId = response.data.collectionId;
+        }
+
+        if (response.data.fileComplete) {
+          console.log(`File ${file.name} uploaded successfully`);
+          // Set download URL if this is the first file and we have a callback
+          if (response.data.downloadUrl && setDownloadUrlCallback) {
+            setDownloadUrlCallback(response.data.downloadUrl);
+          }
+          return currentCollectionId || response.data.collectionId;
+        }
+
+        console.log(
+          `Chunk ${chunkNumber + 1}/${totalChunks} uploaded for ${file.name}`
+        );
+      } catch (error) {
+        console.error(
+          `Error uploading chunk ${chunkNumber + 1}/${totalChunks} for ${
+            file.name
+          }:`,
+          error
+        );
+
+        // Log the full error response for debugging
+        if (error && typeof error === "object" && "response" in error) {
+          const axiosError = error as {
+            response?: { data?: unknown; status?: number };
+          };
+          console.error("Error response data:", axiosError.response?.data);
+          console.error("Error response status:", axiosError.response?.status);
+        }
+
+        throw new Error(
+          `Failed to upload chunk ${chunkNumber + 1}: ${
+            (error as Error).message
+          }`
+        );
+      }
+    }
+
+    return currentCollectionId || "";
+  };
 
   const uploadFiles = async (mail: string) => {
     if (!filesWithPaths || filesWithPaths.length === 0) {
@@ -83,40 +248,58 @@ export default function Home() {
       }
     }
 
-    const formData = new FormData();
-    formData.append("creator", mail);
-    formData.append(
-      "expirationTime",
-      new Date(Date.now() + expirationTime * 24 * 60 * 60 * 1000).toISOString()
-    );
-
-    if (passwordRequired && passwordInput) {
-      formData.append("password", passwordInput);
-    }
-
-    // Add files with their folder paths
-    filesWithPaths.forEach((fileWithPath) => {
-      // Create a new file with the folder path as the name
-      const fileWithFolderName = new File(
-        [fileWithPath.file],
-        fileWithPath.path,
-        {
-          type: fileWithPath.file.type,
-        }
-      );
-      formData.append("files", fileWithFolderName);
-    });
-
     try {
       setIsUploading(true);
-      const response = await axios.post(`${BACKEND_URL}/file`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setDownloadLink(response.data.downloadUrl);
+      setUploadProgress(0);
+      setUploadError("");
+
+      let collectionId: string | undefined;
+
+      const totalFiles = filesWithPaths.length;
+      let completedFiles = 0;
+
+      for (const fileWithPath of filesWithPaths) {
+        try {
+          console.log(
+            `Starting upload for file: ${fileWithPath.file.name} (${fileWithPath.file.size} bytes)`
+          );
+
+          const result = await uploadFileInChunks(
+            fileWithPath,
+            mail,
+            collectionId,
+            // Only set download link for the first file
+            completedFiles === 0 ? setDownloadLink : undefined
+          );
+
+          if (!collectionId) {
+            collectionId = result;
+          }
+
+          completedFiles++;
+          const overallProgress = (completedFiles / totalFiles) * 100;
+          setUploadProgress(overallProgress);
+
+          console.log(
+            `File ${completedFiles}/${totalFiles} completed: ${fileWithPath.file.name}`
+          );
+        } catch (fileError) {
+          console.error(
+            `Failed to upload file ${fileWithPath.file.name}:`,
+            fileError
+          );
+          throw new Error(
+            `Failed to upload ${fileWithPath.file.name}: ${
+              (fileError as Error).message
+            }`
+          );
+        }
+      }
+
       setUploadProgress(100);
+      console.log("All files uploaded successfully!");
     } catch (error) {
+      console.error("Upload error:", error);
       setUploadError(
         ERROR_MESSAGES.UPLOAD_FAILED + ": " + (error as Error).message
       );

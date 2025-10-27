@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
     return new Response("Collection not found", { status: 404 });
   }
 
-  // Send notification to file uploader that someone downloaded their file
+  // Only send notification email when the uploader activated it
+  if (!collection.wantsToGetNotified) {
+    return new Response("Notification not enabled", { status: 200 });
+  }
 
   sendMail(
     collection.creator,

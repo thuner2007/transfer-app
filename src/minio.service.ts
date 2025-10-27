@@ -1,5 +1,6 @@
 import * as Minio from "minio";
 import archiver from "archiver";
+import { PassThrough } from "stream";
 
 export class MinioService {
   private minioClient: Minio.Client;
@@ -29,7 +30,6 @@ export class MinioService {
         await this.minioClient.makeBucket(bucketName);
         console.log(`Bucket ${bucketName} created successfully`);
 
-        // If public access requested, set the appropriate policy
         if (isPublic) {
           await this.makeBucketPublic(bucketName);
         }
@@ -48,7 +48,6 @@ export class MinioService {
     }
   }
 
-  // Add a separate method to handle making buckets public
   async makeBucketPublic(bucketName: string): Promise<void> {
     try {
       console.log(`Setting bucket ${bucketName} to public`);
@@ -92,29 +91,97 @@ export class MinioService {
         return null;
       }
 
-      // Create a zip archive
+      // Use memory-efficient archiver configuration
       const archive = archiver("zip", {
-        zlib: { level: 9 }, // Maximum compression
+        zlib: { level: 1 }, // Set compression level
+        store: false,
+        forceLocalTime: true,
+        statConcurrency: 10, // Process multiple files concurrently
+        allowHalfOpen: false,
+        highWaterMark: 1024 * 1024, // 1MB buffer size for streams
       });
 
-      // List all objects in the bucket
-      const objectsStream = this.minioClient.listObjectsV2(
-        bucketName,
-        "",
-        true
-      );
+      // Handle archive errors
+      archive.on("error", (err) => {
+        console.error("Archive error:", err);
+        throw err;
+      });
 
-      // Add each file to the archive
-      for await (const obj of objectsStream) {
-        const objectStream = await this.minioClient.getObject(
-          bucketName,
-          obj.name
-        );
-        archive.append(objectStream, { name: obj.name });
-      }
+      // Handle archive warnings
+      archive.on("warning", (err) => {
+        if (err.code === "ENOENT") {
+          console.warn("Archive warning:", err);
+        } else {
+          throw err;
+        }
+      });
 
-      // Finalize the archive
-      archive.finalize();
+      setImmediate(async () => {
+        try {
+          // List all objects in the bucket
+          const objectsStream = this.minioClient.listObjectsV2(
+            bucketName,
+            "",
+            true
+          );
+
+          const files: Array<{ name: string; size?: number }> = [];
+          for await (const obj of objectsStream) {
+            files.push({ name: obj.name, size: obj.size });
+          }
+
+          console.log(`Creating zip with ${files.length} files`);
+
+          // Process multiple files concurrently
+          const concurrencyLimit = 10; // Process 10 files at once
+          const processingPromises: Promise<void>[] = [];
+
+          for (let i = 0; i < files.length; i += concurrencyLimit) {
+            const batch = files.slice(i, i + concurrencyLimit);
+
+            const batchPromise = Promise.all(
+              batch.map(async (file, index) => {
+                try {
+                  const actualIndex = i + index + 1;
+                  console.log(
+                    `Adding file ${actualIndex}/${files.length}: ${file.name}`
+                  );
+
+                  const objectStream = await this.minioClient.getObject(
+                    bucketName,
+                    file.name
+                  );
+
+                  // Use store mode for large files
+                  const shouldStore = !!(file.size && file.size > 5 * 1024 * 1024); // 5MB
+
+                  archive.append(objectStream, {
+                    name: file.name,
+                    store: shouldStore,
+                  });
+                } catch (fileError) {
+                  console.error(
+                    `Error processing file ${file.name}:`,
+                    fileError
+                  );
+                  // Continue with other files
+                }
+              })
+            ).then(() => {});
+
+            processingPromises.push(batchPromise);
+
+            // Wait for current batch before starting next (to control memory usage)
+            await batchPromise;
+          }
+
+          console.log("Finalizing zip archive");
+          archive.finalize();
+        } catch (error) {
+          console.error("Error in file processing:", error);
+          archive.emit("error", error);
+        }
+      });
 
       return archive;
     } catch (error) {
@@ -210,9 +277,9 @@ export class MinioService {
     let actualFileName = file.name;
 
     if (file.name.includes("/")) {
-      // Get folder path from file name (e.g., "folder1/folder2/file.txt" -> "folder1/folder2")
+      // Get folder path from file name (for example: "folder1/folder2/file.txt" -> "folder1/folder2")
       const folderPath = file.name.substring(0, file.name.lastIndexOf("/"));
-      // Get actual file name (e.g., "folder1/folder2/file.txt" -> "file.txt")
+      // Get actual file name (for example: "folder1/folder2/file.txt" -> "file.txt")
       actualFileName = file.name.substring(file.name.lastIndexOf("/") + 1);
 
       // Split folder path and clean each part
@@ -269,6 +336,264 @@ export class MinioService {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to upload file: ${errorMessage}`);
+    }
+  }
+
+  async uploadChunk(
+    bucketName: string,
+    fileId: string,
+    chunkNumber: number,
+    chunkData: Buffer,
+    originalFileName: string,
+    mimeType: string
+  ): Promise<void> {
+    try {
+      // Store chunk with naming convention: chunks/{fileId}/{chunkNumber}
+      const chunkKey = `chunks/${fileId}/${String(chunkNumber).padStart(
+        6,
+        "0"
+      )}`;
+
+      const metaData = {
+        "Content-Type": "application/octet-stream",
+        "Original-File-Name": originalFileName,
+        "Mime-Type": mimeType,
+        "Chunk-Number": chunkNumber.toString(),
+        "File-ID": fileId,
+      };
+
+      await this.minioClient.putObject(
+        bucketName,
+        chunkKey,
+        chunkData,
+        chunkData.length,
+        metaData
+      );
+
+      console.log(`Uploaded chunk ${chunkNumber} for file ${fileId}`);
+    } catch (error) {
+      console.error(
+        `Error uploading chunk ${chunkNumber} for file ${fileId}:`,
+        error
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to upload chunk: ${errorMessage}`);
+    }
+  }
+
+  async mergeChunks(
+    bucketName: string,
+    fileId: string,
+    totalChunks: number,
+    originalFileName: string,
+    mimeType: string,
+    totalSize: number
+  ): Promise<{
+    fileName: string;
+    size: number;
+    mimetype: string;
+  }> {
+    try {
+      // Extract folder structure from file name if it contains "/"
+      let objectKey = originalFileName;
+
+      if (originalFileName.includes("/")) {
+        const folderPath = originalFileName.substring(
+          0,
+          originalFileName.lastIndexOf("/")
+        );
+        const actualFileName = originalFileName.substring(
+          originalFileName.lastIndexOf("/") + 1
+        );
+
+        const folderParts = folderPath
+          .split("/")
+          .filter((part) => part.trim() !== "");
+        const cleanedFolders: string[] = [];
+
+        for (const part of folderParts) {
+          const cleanedPart = part.trim().replace(/[^a-zA-Z0-9\-_]/g, "");
+          if (cleanedPart) {
+            cleanedFolders.push(cleanedPart);
+          }
+        }
+
+        if (cleanedFolders.length > 0) {
+          objectKey = `${cleanedFolders.join("/")}/${actualFileName}`;
+        } else {
+          objectKey = actualFileName;
+        }
+      }
+
+      const metaData = {
+        "Content-Type": mimeType,
+        "Content-Length": totalSize.toString(),
+        "Original-Name": originalFileName,
+      };
+
+      // Uses streaming to merge chunks
+      const mergeStream = new PassThrough();
+      let totalBytesWritten = 0;
+
+      const mergePromise = new Promise<void>((resolve, reject) => {
+        let currentChunk = 0;
+
+        const processNextChunk = async () => {
+          if (currentChunk >= totalChunks) {
+            // Verify the final size matches expected size
+            if (totalBytesWritten !== totalSize) {
+              reject(
+                new Error(
+                  `Merged file size ${totalBytesWritten} doesn't match expected size ${totalSize}`
+                )
+              );
+              return;
+            }
+            mergeStream.end();
+            resolve();
+            return;
+          }
+
+          const chunkKey = `chunks/${fileId}/${String(currentChunk).padStart(
+            6,
+            "0"
+          )}`;
+          try {
+            const chunkStream = await this.minioClient.getObject(
+              bucketName,
+              chunkKey
+            );
+
+            chunkStream.on("data", (data: Buffer) => {
+              totalBytesWritten += data.length;
+              mergeStream.write(data);
+            });
+
+            chunkStream.on("end", () => {
+              currentChunk++;
+              processNextChunk();
+            });
+
+            chunkStream.on("error", (error) => {
+              reject(
+                new Error(
+                  `Failed to read chunk ${currentChunk} for file ${fileId}: ${error.message}`
+                )
+              );
+            });
+          } catch (error) {
+            reject(
+              new Error(
+                `Failed to retrieve chunk ${currentChunk} for file ${fileId}: ${error}`
+              )
+            );
+          }
+        };
+
+        processNextChunk();
+      });
+
+      // Upload the merged file using streaming
+      await Promise.all([
+        this.minioClient.putObject(
+          bucketName,
+          objectKey,
+          mergeStream,
+          totalSize,
+          metaData
+        ),
+        mergePromise,
+      ]);
+
+      // Clean up chunk files
+      await this.cleanupChunks(bucketName, fileId, totalChunks);
+
+      console.log(
+        `Successfully merged ${totalChunks} chunks into ${objectKey}`
+      );
+
+      return {
+        fileName: objectKey,
+        size: totalSize,
+        mimetype: mimeType,
+      };
+    } catch (error) {
+      console.error(`Error merging chunks for file ${fileId}:`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to merge chunks: ${errorMessage}`);
+    }
+  }
+
+  async cleanupChunks(
+    bucketName: string,
+    fileId: string,
+    totalChunks: number
+  ): Promise<void> {
+    try {
+      const chunksToDelete: string[] = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkKey = `chunks/${fileId}/${String(i).padStart(6, "0")}`;
+        chunksToDelete.push(chunkKey);
+      }
+
+      if (chunksToDelete.length > 0) {
+        await this.minioClient.removeObjects(bucketName, chunksToDelete);
+        console.log(
+          `Cleaned up ${chunksToDelete.length} chunk files for ${fileId}`
+        );
+      }
+    } catch (error) {
+      console.error(`Error cleaning up chunks for file ${fileId}:`, error);
+    }
+  }
+
+  async checkChunkExists(
+    bucketName: string,
+    fileId: string,
+    chunkNumber: number
+  ): Promise<boolean> {
+    try {
+      const chunkKey = `chunks/${fileId}/${String(chunkNumber).padStart(
+        6,
+        "0"
+      )}`;
+      await this.minioClient.statObject(bucketName, chunkKey);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async getUploadedChunks(
+    bucketName: string,
+    fileId: string
+  ): Promise<number[]> {
+    try {
+      const prefix = `chunks/${fileId}/`;
+      const objectsStream = this.minioClient.listObjectsV2(
+        bucketName,
+        prefix,
+        false
+      );
+      const uploadedChunks: number[] = [];
+
+      for await (const obj of objectsStream) {
+        const chunkFileName = obj.name.split("/").pop();
+        if (chunkFileName) {
+          const chunkNumber = parseInt(chunkFileName, 10);
+          if (!isNaN(chunkNumber)) {
+            uploadedChunks.push(chunkNumber);
+          }
+        }
+      }
+
+      return uploadedChunks.sort((a, b) => a - b);
+    } catch (error) {
+      console.error(`Error getting uploaded chunks for file ${fileId}:`, error);
+      return [];
     }
   }
 }

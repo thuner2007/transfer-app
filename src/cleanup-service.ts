@@ -109,11 +109,11 @@ class CleanupService {
     cleanupExpiredVerifications();
     cleanupExpiredDownloadLinks();
 
-    // Set interval to run every 1 minute (60000 milliseconds)
+    // Set interval to run every 10 minute (600000 milliseconds)
     this.intervalId = setInterval(async () => {
       await cleanupExpiredVerifications();
       await cleanupExpiredDownloadLinks();
-    }, 6000);
+    }, 600000);
 
     this.isRunning = true;
   }
@@ -134,7 +134,6 @@ class CleanupService {
   }
 }
 
-// Export the singleton instance
 export const cleanupService = CleanupService.getInstance();
 
 // Auto-start the service when this module is imported

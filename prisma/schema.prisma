@@ -14,10 +14,11 @@ model collection {
   createdAt      DateTime @default(now())
   creator        String   @default("anonymous")
   fileCount      Int      @default(0)
-  filesSize      Int      @default(0)
+  filesSize      BigInt   @default(0)
   password       String?
   hasPassword    Boolean  @default(false)
   expirationTime DateTime @default(dbgenerated("now() + interval '3 days'")) @db.Timestamp(6)
+  wantsToGetNotified Boolean @default(true)
   files          file[]
 }
 
@@ -25,7 +26,7 @@ model file {
   id           String     @id @default(uuid())
   filename     String
   mimetype     String
-  size         Int
+  size         BigInt
   collectionId String
   createdAt    DateTime   @default(now())
   collection   collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)

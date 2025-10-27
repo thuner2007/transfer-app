@@ -177,7 +177,6 @@ const FileManager: React.FC<FileManagerProps> = ({
     return paths;
   };
 
-  // Helper function to perform the actual move
   const performMove = (item: FolderItem, targetPath: string) => {
     // Update file path if it's a file
     if (item.type === "file" && item.file) {
@@ -193,7 +192,6 @@ const FileManager: React.FC<FileManagerProps> = ({
 
     // Move item in folder structure (remove from old location and add to new location in single update)
     setFolderStructure((prev) => {
-      // First, remove the item from its current location
       const removeFromStructure = (items: FolderItem[]): FolderItem[] => {
         return items
           .filter((i) => i.id !== item.id)
@@ -309,7 +307,7 @@ const FileManager: React.FC<FileManagerProps> = ({
         return [...existing, ...newFilesWithPaths];
       });
 
-      // Update folder structure with files
+      // Update folder structure with flies
       const fileItems: FolderItem[] = newFilesWithPaths.map((fileWithPath) => ({
         id: `file-${Date.now()}-${Math.random()}`,
         name: fileWithPath.file.name,
@@ -322,7 +320,7 @@ const FileManager: React.FC<FileManagerProps> = ({
         const updated = [...prev];
         const targetPath = currentFolderPath.split("/").filter((p) => p);
 
-        // Check if files already exist in the target location to prevent duplicates
+        // Check if files already exist in the target location to not get duplicates
         const targetItems =
           targetPath.length === 0
             ? updated
@@ -341,7 +339,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                 return current;
               })();
 
-        // Filter out fileItems that already exist in the target location
+        // Filter out fileItems that already exist in the targeted location
         const newFileItems = fileItems.filter(
           (newItem) =>
             !targetItems.some(
