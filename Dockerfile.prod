@@ -1,3 +1,19 @@
+FROM node:20-alpine AS deps
+
+# Set workdir
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install ALL dependencies (including dev dependencies for Prisma)
+RUN npm ci
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Production stage
 FROM node:20-alpine AS production
 
 # Add user and group
@@ -7,11 +23,14 @@ RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
 # Set workdir
 WORKDIR /app
 
-# Copy package files first for better caching
-COPY --chown=appuser:appgroup ./package*.json /app/
+# Copy package files
+COPY --chown=appuser:appgroup package*.json ./
 
-# Install production dependencies
-RUN npm ci --only=production --ignore-scripts
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+# Copy generated Prisma client from deps stage
+COPY --from=deps --chown=appuser:appgroup /app/src/generated ./src/generated
 
 # Copy built application and other needed files
 COPY --chown=appuser:appgroup ./.next /app/.next
