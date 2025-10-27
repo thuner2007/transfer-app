@@ -124,6 +124,8 @@ export default function Home() {
     const sanitizedPath = sanitizeFilePath(fileWithPath.path);
     const sanitizedFileName = sanitizeFilename(file.name);
 
+    setTotalChunks((prev) => prev + totalChunks);
+
     console.log(
       `Uploading ${
         file.name
@@ -199,6 +201,7 @@ export default function Home() {
         console.log(
           `Chunk ${chunkNumber + 1}/${totalChunks} uploaded for ${file.name}`
         );
+        setUploadedChunks((prev) => prev + 1);
       } catch (error) {
         console.error(
           `Error uploading chunk ${chunkNumber + 1}/${totalChunks} for ${
@@ -301,6 +304,7 @@ export default function Home() {
 
       setUploadProgress(100);
       console.log("All files uploaded successfully!");
+      setUploadedChunks(totalChunks);
     } catch (error) {
       console.error("Upload error:", error);
       setUploadError(
