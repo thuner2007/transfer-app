@@ -126,6 +126,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./Dockerfile.prod
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -133,9 +134,6 @@ jobs:
           push: ${{ github.ref_name == 'main' || github.event_name == 'release'  }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Build production Docker image
-        run: docker build -f Dockerfile.prod -t my-app:latest .
 
       - name: cleanup older images
         uses: actions/delete-package-versions@v5
