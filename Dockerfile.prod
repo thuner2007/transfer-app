@@ -1,48 +1,24 @@
-FROM node:20-alpine AS deps
-
-# Set workdir
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install ALL dependencies (including dev dependencies for Prisma)
-RUN npm ci
-
-# Generate Prisma Client
-RUN npx prisma generate
-
-# Production stage
 FROM node:20-alpine AS production
 
 # Add user and group
 RUN addgroup -g 2000 -S appgroup
 RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
 
+# remove yarn
+RUN npm uninstall -g yarn
+
 # Set workdir
 WORKDIR /app
 
-# Copy package files
-COPY --chown=appuser:appgroup package*.json ./
-
-# Copy generated Prisma client from deps stage
-COPY --from=deps --chown=appuser:appgroup /app/src/generated ./src/generated
-
-# Copy built application and other needed files
+# Copy needed files (not needed files in .dockerignore)
 COPY --chown=appuser:appgroup ./.next /app/.next
+COPY --chown=appuser:appgroup ./node_modules /app/node_modules
 COPY --chown=appuser:appgroup ./public /app/public
-COPY --chown=appuser:appgroup ./prisma /app/prisma
 COPY --chown=appuser:appgroup ./entrypoint.sh /app/entrypoint.sh
 COPY --chown=appuser:appgroup ./next.config.ts /app/next.config.ts
+COPY --chown=appuser:appgroup ./package.json /app/package.json
 
-ENV NODE_ENV=production
 ENV APPLICATION_ROOT="/app"
 
 RUN chmod +x ./entrypoint.sh
-
-USER appuser
-
-EXPOSE 3008
-
 ENTRYPOINT ["./entrypoint.sh"]
