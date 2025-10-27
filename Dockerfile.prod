@@ -8,7 +8,8 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install ALL dependencies (including dev dependencies for Prisma)
-RUN npm ci
+# Use --registry to force public npm registry
+RUN npm ci --registry=https://registry.npmjs.org/
 
 # Generate Prisma Client
 RUN npx prisma generate
