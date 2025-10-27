@@ -18,6 +18,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/generated/**", // Add this line to ignore all generated Prisma files
+      "prisma/migrations/**", // Also ignore migration files
     ],
   },
 ];
