@@ -41,7 +41,6 @@
       "onAutoForward": "notify"
     }
   },
-  "initializeCommand": "if [ ! -f .npmrc ]; then cp ~/.npmrc .npmrc 2>/dev/null || true; fi",
   "postCreateCommand": "bash -i .devcontainer/init.sh",
   "remoteUser": "node"
 }

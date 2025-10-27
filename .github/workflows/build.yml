@@ -21,9 +21,6 @@ jobs:
         with:
           node-version: "20"
 
-      - name: remove npmrc if exists
-        run: rm -f .npmrc
-
       - name: install packages
         run: npm install
 
@@ -38,9 +35,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: remove npmrc if exists
-        run: rm -f .npmrc
 
       - name: install packages
         run: npm install
