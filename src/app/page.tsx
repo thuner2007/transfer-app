@@ -34,6 +34,9 @@ export default function Home() {
   const [passwordRequired, setPasswordRequired] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>("");
 
+  const [uploadedChunks, setUploadedChunks] = useState<number>(0);
+  const [totalChunks, setTotalChunks] = useState<number>(0);
+
   const handleLanguageChange = () => {};
 
   // Edit filename to be good for MinIO storage
@@ -408,6 +411,9 @@ export default function Home() {
             >
               {isUploading ? "Uploading..." : "Upload"}
             </button>
+            <p>
+              {totalChunks > 0 ? (uploadedChunks / totalChunks) * 100 : 0} %
+            </p>
           </div>
         </div>
       </div>
