@@ -26,13 +26,13 @@ interface DownloadFolderItem {
 }
 
 interface DownloadPageProps {
-  params: {
+  params: Promise<{
     collectionId: string;
-  };
+  }>;
 }
 
 export default function DownloadPage({ params }: DownloadPageProps) {
-  const { collectionId } = params;
+  const { collectionId } = React.use(params);
 
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
     {} as CollectionData
