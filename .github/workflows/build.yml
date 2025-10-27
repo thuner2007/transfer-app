@@ -99,6 +99,9 @@ jobs:
       - name: remove cache
         run: rm -rf .next/cache
 
+      - name: remove npmrc to use public registry
+        run: rm -f .npmrc
+
       - name: login to docker
         uses: docker/login-action@v3
         with:
