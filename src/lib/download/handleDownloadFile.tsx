@@ -1,14 +1,12 @@
 import axios from "axios";
-const backendUrl =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
-
+import { BACKEND_URL } from "../api/constants";
 export const handleDownloadFile = async (
   filename: string,
   collectionId: string
 ) => {
   try {
     const response = await axios.get(
-      `${backendUrl}/file/single?collectionId=${collectionId}&filename=${encodeURIComponent(
+      `${BACKEND_URL}/file/single?collectionId=${collectionId}&filename=${encodeURIComponent(
         filename
       )}`,
       {

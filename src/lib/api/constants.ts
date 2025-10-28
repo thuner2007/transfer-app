@@ -1,6 +1,6 @@
 // API Configuration
 export const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3008/api";
 
 // File type mappings for icons
 export const FILE_TYPES = {
