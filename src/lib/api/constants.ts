@@ -1,6 +1,6 @@
 // API Configuration
-export const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3008/api";
+// Use relative URL so it works on any domain without rebuild
+export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "/api";
 
 // File type mappings for icons
 export const FILE_TYPES = {
