@@ -42,7 +42,6 @@ COPY --chown=appuser:appgroup ./.next /app/.next
 COPY --chown=appuser:appgroup ./public /app/public
 COPY --chown=appuser:appgroup ./prisma /app/prisma
 COPY --chown=appuser:appgroup ./entrypoint.sh /app/entrypoint.sh
-COPY --chown=appuser:appgroup ./debug-migrations.sh /app/debug-migrations.sh
 COPY --chown=appuser:appgroup ./next.config.ts /app/next.config.ts
 
 ENV NODE_ENV=production
@@ -50,7 +49,6 @@ ENV APPLICATION_ROOT="/app"
 
 # Ensure migrations directory has correct permissions
 RUN chmod +x ./entrypoint.sh && \
-    chmod +x ./debug-migrations.sh && \
     chmod -R 755 /app/prisma && \
     chown -R appuser:appgroup /app
 
