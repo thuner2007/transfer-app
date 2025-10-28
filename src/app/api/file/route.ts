@@ -126,7 +126,7 @@ export async function POST(request: Request) {
 
     // Create the download url
     const downloadUrl =
-      process.env.DOWNLOAD_SERVICE_URL + "d/" + collectionUuid;
+      process.env.DOWNLOAD_SERVICE_URL + "/d/" + collectionUuid;
 
     // Save collection metadata to database
     await prismaService.collection.create({
