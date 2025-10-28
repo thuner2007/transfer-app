@@ -29,6 +29,9 @@ COPY --chown=appuser:appgroup package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev
 
+# Install Prisma CLI for migrations
+RUN npm install prisma --save-dev
+
 # Copy generated Prisma client from deps stage
 COPY --from=deps --chown=appuser:appgroup /app/src/generated ./src/generated
 
