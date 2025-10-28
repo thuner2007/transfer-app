@@ -26,6 +26,9 @@ WORKDIR /app
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
 
+# Install production dependencies only
+RUN npm ci --omit=dev
+
 # Copy generated Prisma client from deps stage
 COPY --from=deps --chown=appuser:appgroup /app/src/generated ./src/generated
 
@@ -39,7 +42,8 @@ COPY --chown=appuser:appgroup ./next.config.ts /app/next.config.ts
 ENV NODE_ENV=production
 ENV APPLICATION_ROOT="/app"
 
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 
