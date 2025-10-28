@@ -54,4 +54,5 @@ USER appuser
 
 EXPOSE 3008
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]
+CMD []
