@@ -1,20 +1,29 @@
 import * as Minio from "minio";
 import archiver from "archiver";
+import * as dotenv from "dotenv";
 import { PassThrough } from "stream";
+
+dotenv.config();
 
 export class MinioService {
   private minioClient: Minio.Client;
 
   constructor() {
+    // Absolute minimal configuration - matching CLI exactly
+
+    // Add region configuration
+    const region = process.env.MINIO_REGION || "eu-central-1"; // Default to us-east-1 if not provided
+
     this.minioClient = new Minio.Client({
-      endPoint: process.env.MINIO_ENDPOINT || "transfer-app-minio",
+      endPoint: process.env.MINIO_ENDPOINT || "localhost",
       port: parseInt(process.env.MINIO_PORT || "9000", 10),
       useSSL: process.env.MINIO_USE_SSL === "true",
-      accessKey: process.env.MINIO_ROOT_USER || "",
-      secretKey: process.env.MINIO_ROOT_PASSWORD || "",
-      region: "eu-central-1",
-      pathStyle: true,
+      accessKey: process.env.MINIO_ACCESS_KEY,
+      secretKey: process.env.MINIO_SECRET_KEY,
+      region, // Include the region
     });
+
+    console.log("MinIO Client initialized - with chunked upload support");
   }
 
   async createBucketIfNotExists(
@@ -153,7 +162,9 @@ export class MinioService {
                   );
 
                   // Use store mode for large files
-                  const shouldStore = !!(file.size && file.size > 5 * 1024 * 1024); // 5MB
+                  const shouldStore = !!(
+                    file.size && file.size > 5 * 1024 * 1024
+                  ); // 5MB
 
                   archive.append(objectStream, {
                     name: file.name,
