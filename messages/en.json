@@ -1,0 +1,53 @@
+{
+  "HomePage": {
+    "title": "File Transfer",
+    "yourEmail": "Your email",
+    "sendTo": "Send to",
+    "enterEmail": "Enter an email",
+    "upload": "Upload",
+    "uploading": "Uploading...",
+    "preparingUpload": "Preparing upload...",
+    "selectFiles": "Select Files",
+    "dropFilesHere": "Drop files here",
+    "noFilesSelected": "No files selected",
+    "settings": "Settings",
+    "passwordProtection": "Password Protection",
+    "emailNotification": "Email Notification",
+    "expirationTime": "Expiration Time",
+    "days": "days",
+    "downloadLink": "Download Link",
+    "shareQR": "Share QR Code"
+  },
+  "DownloadPage": {
+    "title": "Download Files",
+    "uploadedBy": "{creator} uploaded {count} files at {date}",
+    "downloadAll": "Download All (ZIP)",
+    "preparingDownload": "Preparing Download...",
+    "filesAndFolders": "Files & Folders",
+    "noFiles": "No files or folders",
+    "passwordProtected": "This download is password protected!",
+    "enterPassword": "Please enter the password to access the files.",
+    "password": "Password",
+    "enterPasswordPlaceholder": "Enter password",
+    "close": "Close",
+    "verify": "Verify",
+    "incorrectPassword": "Incorrect password",
+    "downloadFile": "Download file"
+  },
+  "VerifyEmail": {
+    "title": "Verify Your Email",
+    "description": "We've sent a verification code to your email. Please enter it below.",
+    "code": "Verification Code",
+    "enterCode": "Enter 6-digit code",
+    "verify": "Verify",
+    "close": "Close",
+    "invalidCode": "Invalid verification code"
+  },
+  "Errors": {
+    "uploadFailed": "Upload failed",
+    "downloadFailed": "Download failed. Please try again.",
+    "downloadTimeout": "Download timeout - the file might be too large. Please try again or contact support.",
+    "passwordIncorrect": "Incorrect password",
+    "verificationFailed": "Verification failed"
+  }
+}

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useEffect, useCallback } from "react";
 import { BACKEND_URL, ERROR_MESSAGES } from "../../lib/api/constants";
 
 interface VerifyEmailModalProps {
@@ -20,6 +21,53 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
   setVerifyModalOpen,
   userMail,
 }) => {
+  const handleVerify = useCallback(async () => {
+    if (verificationCode.length !== 6) {
+      alert("Please enter a 6-digit verification code");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/mail/verify`, {
+        code: parseInt(verificationCode),
+        email: userMail,
+      });
+
+      if (response.data.verifyStatus === "success") {
+        setMailVerified(true);
+        setVerifyModalOpen(false);
+        console.log("Email verified successfully!");
+      } else {
+        setVerificationError(ERROR_MESSAGES.INVALID_VERIFICATION_CODE);
+      }
+    } catch (error) {
+      console.error("Error verifying code:", error);
+      setVerificationError(
+        ERROR_MESSAGES.ERROR_VERIFY_FAILED + ": " + (error as Error).message
+      );
+    }
+  }, [
+    verificationCode,
+    userMail,
+    setMailVerified,
+    setVerifyModalOpen,
+    setVerificationError,
+  ]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        handleVerify();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleVerify]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -63,39 +111,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
             Close
           </button>
           <button
-            onClick={async () => {
-              if (verificationCode.length !== 6) {
-                alert("Please enter a 6-digit verification code");
-                return;
-              }
-
-              try {
-                const response = await axios.post(
-                  `${BACKEND_URL}/mail/verify`,
-                  {
-                    code: parseInt(verificationCode),
-                    email: userMail,
-                  }
-                );
-
-                if (response.data.verifyStatus === "success") {
-                  setMailVerified(true);
-                  setVerifyModalOpen(false);
-                  console.log("Email verified successfully!");
-                } else {
-                  setVerificationError(
-                    ERROR_MESSAGES.INVALID_VERIFICATION_CODE
-                  );
-                }
-              } catch (error) {
-                console.error("Error verifying code:", error);
-                setVerificationError(
-                  ERROR_MESSAGES.ERROR_VERIFY_FAILED +
-                    ": " +
-                    (error as Error).message
-                );
-              }
-            }}
+            onClick={handleVerify}
             disabled={verificationCode.length !== 6}
             className={`flex-1 font-bold py-2 px-4 rounded-md transition-colors ${
               verificationCode.length === 6

@@ -1,0 +1,53 @@
+{
+  "HomePage": {
+    "title": "Transfert de fichiers",
+    "yourEmail": "Votre e-mail",
+    "sendTo": "Envoyer à",
+    "enterEmail": "Entrer un e-mail",
+    "upload": "Télécharger",
+    "uploading": "Téléchargement en cours...",
+    "preparingUpload": "Préparation du téléchargement...",
+    "selectFiles": "Sélectionner des fichiers",
+    "dropFilesHere": "Déposer les fichiers ici",
+    "noFilesSelected": "Aucun fichier sélectionné",
+    "settings": "Paramètres",
+    "passwordProtection": "Protection par mot de passe",
+    "emailNotification": "Notification par e-mail",
+    "expirationTime": "Délai d'expiration",
+    "days": "jours",
+    "downloadLink": "Lien de téléchargement",
+    "shareQR": "Partager le code QR"
+  },
+  "DownloadPage": {
+    "title": "Télécharger les fichiers",
+    "uploadedBy": "{creator} a téléchargé {count} fichiers le {date}",
+    "downloadAll": "Tout télécharger (ZIP)",
+    "preparingDownload": "Préparation du téléchargement...",
+    "filesAndFolders": "Fichiers et dossiers",
+    "noFiles": "Aucun fichier ou dossier",
+    "passwordProtected": "Ce téléchargement est protégé par mot de passe !",
+    "enterPassword": "Veuillez entrer le mot de passe pour accéder aux fichiers.",
+    "password": "Mot de passe",
+    "enterPasswordPlaceholder": "Entrer le mot de passe",
+    "close": "Fermer",
+    "verify": "Vérifier",
+    "incorrectPassword": "Mot de passe incorrect",
+    "downloadFile": "Télécharger le fichier"
+  },
+  "VerifyEmail": {
+    "title": "Vérifier votre e-mail",
+    "description": "Nous avons envoyé un code de vérification à votre e-mail. Veuillez l'entrer ci-dessous.",
+    "code": "Code de vérification",
+    "enterCode": "Entrer le code à 6 chiffres",
+    "verify": "Vérifier",
+    "close": "Fermer",
+    "invalidCode": "Code de vérification invalide"
+  },
+  "Errors": {
+    "uploadFailed": "Échec du téléchargement",
+    "downloadFailed": "Échec du téléchargement. Veuillez réessayer.",
+    "downloadTimeout": "Délai de téléchargement dépassé - le fichier pourrait être trop volumineux. Veuillez réessayer ou contacter le support.",
+    "passwordIncorrect": "Mot de passe incorrect",
+    "verificationFailed": "Échec de la vérification"
+  }
+}

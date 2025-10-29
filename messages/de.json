@@ -1,0 +1,53 @@
+{
+  "HomePage": {
+    "title": "Dateiübertragung",
+    "yourEmail": "Ihre E-Mail",
+    "sendTo": "Senden an",
+    "enterEmail": "E-Mail eingeben",
+    "upload": "Hochladen",
+    "uploading": "Wird hochgeladen...",
+    "preparingUpload": "Upload wird vorbereitet...",
+    "selectFiles": "Dateien auswählen",
+    "dropFilesHere": "Dateien hier ablegen",
+    "noFilesSelected": "Keine Dateien ausgewählt",
+    "settings": "Einstellungen",
+    "passwordProtection": "Passwortschutz",
+    "emailNotification": "E-Mail-Benachrichtigung",
+    "expirationTime": "Ablaufzeit",
+    "days": "Tage",
+    "downloadLink": "Download-Link",
+    "shareQR": "QR-Code teilen"
+  },
+  "DownloadPage": {
+    "title": "Dateien herunterladen",
+    "uploadedBy": "{creator} hat {count} Dateien hochgeladen am {date}",
+    "downloadAll": "Alle herunterladen (ZIP)",
+    "preparingDownload": "Download wird vorbereitet...",
+    "filesAndFolders": "Dateien & Ordner",
+    "noFiles": "Keine Dateien oder Ordner",
+    "passwordProtected": "Dieser Download ist passwortgeschützt!",
+    "enterPassword": "Bitte geben Sie das Passwort ein, um auf die Dateien zuzugreifen.",
+    "password": "Passwort",
+    "enterPasswordPlaceholder": "Passwort eingeben",
+    "close": "Schließen",
+    "verify": "Überprüfen",
+    "incorrectPassword": "Falsches Passwort",
+    "downloadFile": "Datei herunterladen"
+  },
+  "VerifyEmail": {
+    "title": "E-Mail verifizieren",
+    "description": "Wir haben einen Verifizierungscode an Ihre E-Mail gesendet. Bitte geben Sie ihn unten ein.",
+    "code": "Verifizierungscode",
+    "enterCode": "6-stelligen Code eingeben",
+    "verify": "Überprüfen",
+    "close": "Schließen",
+    "invalidCode": "Ungültiger Verifizierungscode"
+  },
+  "Errors": {
+    "uploadFailed": "Upload fehlgeschlagen",
+    "downloadFailed": "Download fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "downloadTimeout": "Download-Zeitüberschreitung - die Datei könnte zu groß sein. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+    "passwordIncorrect": "Falsches Passwort",
+    "verificationFailed": "Verifizierung fehlgeschlagen"
+  }
+}

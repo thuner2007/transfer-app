@@ -40,8 +40,9 @@ services:
         volume:
           nocopy: false
     command: server /data --console-address :9001
-    env_file:
-      - ./.env
+    environment:
+      - MINIO_ROOT_USER=minio_devel
+      - MINIO_ROOT_PASSWORD=minio_devel
     ports:
       - "9000:9000"
       - "9001:9001"

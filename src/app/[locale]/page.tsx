@@ -3,19 +3,26 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import axios from "axios";
-import { BACKEND_URL, ERROR_MESSAGES } from "../lib/api/constants";
-import FileSelector from "../components/Homepage/FileSelector";
-import { FileWithPath } from "../lib/interfaces/FolderStructure.interface";
-import FileManager from "../components/Homepage/FileManager";
-import SettingsPanel from "../components/Homepage/SettingsPanel";
-import SharePanel from "../components/Homepage/SharePanel";
-import VerifyEmailModal from "../components/Homepage/VerifyEmailModal";
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
+import { BACKEND_URL, ERROR_MESSAGES } from "../../lib/api/constants";
+import FileSelector from "../../components/Homepage/FileSelector";
+import { FileWithPath } from "../../lib/interfaces/FolderStructure.interface";
+import FileManager from "../../components/Homepage/FileManager";
+import SettingsPanel from "../../components/Homepage/SettingsPanel";
+import SharePanel from "../../components/Homepage/SharePanel";
+import VerifyEmailModal from "../../components/Homepage/VerifyEmailModal";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function Home() {
+  const t = useTranslations("HomePage");
+  const params = useParams();
+  const locale = params.locale as string;
+
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
   const [downloadLink, setDownloadLink] = useState<string>(
-    "https://cwx-dev.com"
+    "https://transfer.cwx-dev.com"
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -34,10 +41,7 @@ export default function Home() {
   const [passwordRequired, setPasswordRequired] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>("");
 
-  const [uploadedChunks, setUploadedChunks] = useState<number>(0);
-  const [totalChunks, setTotalChunks] = useState<number>(0);
-
-  const handleLanguageChange = () => {};
+  const [currentFileName, setCurrentFileName] = useState<string>("");
 
   // Edit filename to be good for MinIO storage
   const sanitizeFilename = (filename: string): string => {
@@ -113,7 +117,8 @@ export default function Home() {
     fileWithPath: FileWithPath,
     mail: string,
     collectionId?: string,
-    setDownloadUrlCallback?: (url: string) => void
+    setDownloadUrlCallback?: (url: string) => void,
+    onChunkProgress?: (chunkSize: number) => void
   ): Promise<string> => {
     const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
     const file = fileWithPath.file;
@@ -123,8 +128,6 @@ export default function Home() {
     // Edit the filename and path
     const sanitizedPath = sanitizeFilePath(fileWithPath.path);
     const sanitizedFileName = sanitizeFilename(file.name);
-
-    setTotalChunks((prev) => prev + totalChunks);
 
     console.log(
       `Uploading ${
@@ -201,7 +204,15 @@ export default function Home() {
         console.log(
           `Chunk ${chunkNumber + 1}/${totalChunks} uploaded for ${file.name}`
         );
-        setUploadedChunks((prev) => prev + 1);
+
+        // Update progress after each chunk
+        if (onChunkProgress) {
+          const chunkSize = Math.min(
+            CHUNK_SIZE,
+            file.size - chunkNumber * CHUNK_SIZE
+          );
+          onChunkProgress(chunkSize);
+        }
       } catch (error) {
         console.error(
           `Error uploading chunk ${chunkNumber + 1}/${totalChunks} for ${
@@ -264,18 +275,30 @@ export default function Home() {
       const totalFiles = filesWithPaths.length;
       let completedFiles = 0;
 
+      // Calculate total size for accurate progress
+      const totalSize = filesWithPaths.reduce((acc, f) => acc + f.file.size, 0);
+      let uploadedSize = 0;
+
       for (const fileWithPath of filesWithPaths) {
         try {
           console.log(
             `Starting upload for file: ${fileWithPath.file.name} (${fileWithPath.file.size} bytes)`
           );
 
+          setCurrentFileName(fileWithPath.file.name);
+
           const result = await uploadFileInChunks(
             fileWithPath,
             mail,
             collectionId,
             // Only set download link for the first file
-            completedFiles === 0 ? setDownloadLink : undefined
+            completedFiles === 0 ? setDownloadLink : undefined,
+            // Progress callback for each chunk
+            (chunkSize: number) => {
+              uploadedSize += chunkSize;
+              const overallProgress = (uploadedSize / totalSize) * 100;
+              setUploadProgress(overallProgress);
+            }
           );
 
           if (!collectionId) {
@@ -283,8 +306,6 @@ export default function Home() {
           }
 
           completedFiles++;
-          const overallProgress = (completedFiles / totalFiles) * 100;
-          setUploadProgress(overallProgress);
 
           console.log(
             `File ${completedFiles}/${totalFiles} completed: ${fileWithPath.file.name}`
@@ -304,7 +325,7 @@ export default function Home() {
 
       setUploadProgress(100);
       console.log("All files uploaded successfully!");
-      setUploadedChunks(totalChunks);
+      setCurrentFileName("");
     } catch (error) {
       console.error("Upload error:", error);
       setUploadError(
@@ -312,6 +333,8 @@ export default function Home() {
       );
     } finally {
       setIsUploading(false);
+      setFilesWithPaths([]);
+      setCurrentFileName("");
     }
   };
 
@@ -325,23 +348,18 @@ export default function Home() {
               window.location.reload();
             }}
           >
-            File Transfer
+            {t("title")}
           </h1>
-          <p
-            className="text-gray-600 cursor-pointer"
-            onClick={handleLanguageChange}
-          >
-            English
-          </p>
+          <LanguageSwitcher currentLocale={locale} />
         </div>
 
         <div className="w-full h-full flex items-start justify-center">
           <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">
             <div className="w-full flex items-center justify-between flex-col gap-1">
-              <h4 className="text-xl w-full text-gray-700">Your email</h4>
+              <h4 className="text-xl w-full text-gray-700">{t("yourEmail")}</h4>
               <input
                 className="border border-gray-400 p-2 rounded-md w-full"
-                placeholder="Enter an email"
+                placeholder={t("enterEmail")}
                 type="email"
                 value={userMail}
                 onChange={(e) => setUserMail(e.target.value)}
@@ -362,10 +380,10 @@ export default function Home() {
           </div>
           <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">
             <div className="w-full flex items-center justify-between flex-col gap-1">
-              <h4 className="text-xl w-full text-gray-700">Send to</h4>
+              <h4 className="text-xl w-full text-gray-700">{t("sendTo")}</h4>
               <input
                 className="border border-gray-400 p-2 rounded-md w-full"
-                placeholder="Enter an email"
+                placeholder={t("enterEmail")}
                 type="email"
                 value={receiverMail}
                 onChange={(e) => setReceiverMail(e.target.value)}
@@ -394,12 +412,34 @@ export default function Home() {
                 {uploadError}
               </div>
             )}
+
+            {isUploading && (
+              <div className="w-full space-y-2 mb-4">
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span className="truncate max-w-[70%]">
+                    {currentFileName || t("preparingUpload")}
+                  </span>
+                  <span className="font-semibold">
+                    {Math.round(uploadProgress)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                    style={{ width: `${uploadProgress}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               disabled={
                 isUploading ||
                 !filesWithPaths ||
                 filesWithPaths.length === 0 ||
-                downloadLink !== "https://cwx-dev.com" ||
+                downloadLink !== "https://transfer.cwx-dev.com" ||
                 !userMail.trim()
               }
               onClick={() => uploadFiles(userMail)}
@@ -407,17 +447,40 @@ export default function Home() {
                 isUploading ||
                 !filesWithPaths ||
                 filesWithPaths.length === 0 ||
-                downloadLink !== "https://cwx-dev.com" ||
+                downloadLink !== "https://transfer.cwx-dev.com" ||
                 !userMail.trim()
                   ? "bg-gray-400 cursor-not-allowed opacity-60"
                   : "bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
               }`}
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              {isUploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {t("uploading")}
+                </span>
+              ) : (
+                t("upload")
+              )}
             </button>
-            <p>
-              {totalChunks > 0 ? (uploadedChunks / totalChunks) * 100 : 0} %
-            </p>
           </div>
         </div>
       </div>

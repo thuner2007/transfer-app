@@ -26,5 +26,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ verifyStatus: "success" }, { status: 200 });
   }
 
+  if (verificationEntry.code !== code) {
+    return NextResponse.json(
+      { verifyStatus: "invalid_code" },
+      { status: 400 }
+    );
+  }
+
   return new Response("Email verification failed", { status: 400 });
 }

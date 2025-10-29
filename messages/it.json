@@ -1,0 +1,53 @@
+{
+  "HomePage": {
+    "title": "Trasferimento file",
+    "yourEmail": "La tua email",
+    "sendTo": "Invia a",
+    "enterEmail": "Inserisci un'email",
+    "upload": "Carica",
+    "uploading": "Caricamento in corso...",
+    "preparingUpload": "Preparazione caricamento...",
+    "selectFiles": "Seleziona file",
+    "dropFilesHere": "Trascina i file qui",
+    "noFilesSelected": "Nessun file selezionato",
+    "settings": "Impostazioni",
+    "passwordProtection": "Protezione con password",
+    "emailNotification": "Notifica via email",
+    "expirationTime": "Tempo di scadenza",
+    "days": "giorni",
+    "downloadLink": "Link di download",
+    "shareQR": "Condividi codice QR"
+  },
+  "DownloadPage": {
+    "title": "Scarica file",
+    "uploadedBy": "{creator} ha caricato {count} file il {date}",
+    "downloadAll": "Scarica tutto (ZIP)",
+    "preparingDownload": "Preparazione download...",
+    "filesAndFolders": "File e cartelle",
+    "noFiles": "Nessun file o cartella",
+    "passwordProtected": "Questo download è protetto da password!",
+    "enterPassword": "Inserisci la password per accedere ai file.",
+    "password": "Password",
+    "enterPasswordPlaceholder": "Inserisci password",
+    "close": "Chiudi",
+    "verify": "Verifica",
+    "incorrectPassword": "Password errata",
+    "downloadFile": "Scarica file"
+  },
+  "VerifyEmail": {
+    "title": "Verifica la tua email",
+    "description": "Abbiamo inviato un codice di verifica alla tua email. Inseriscilo qui sotto.",
+    "code": "Codice di verifica",
+    "enterCode": "Inserisci il codice a 6 cifre",
+    "verify": "Verifica",
+    "close": "Chiudi",
+    "invalidCode": "Codice di verifica non valido"
+  },
+  "Errors": {
+    "uploadFailed": "Caricamento fallito",
+    "downloadFailed": "Download fallito. Riprova.",
+    "downloadTimeout": "Timeout download - il file potrebbe essere troppo grande. Riprova o contatta il supporto.",
+    "passwordIncorrect": "Password errata",
+    "verificationFailed": "Verifica fallita"
+  }
+}

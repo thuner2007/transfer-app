@@ -1,15 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { formatFileSize } from "../../../lib/formating/formatFileSize";
-import { handleDownloadFile } from "../../../lib/download/handleDownloadFile";
-import { BACKEND_URL, ERROR_MESSAGES } from "../../../lib/api/constants";
-import { getFileIcon } from "../../../lib/formating/getFileIcon";
-import { CollectionData } from "../../../lib/interfaces/CollectionData.interface";
-import { sendDownloadNotification } from "../../../lib/download/sendDownloadNotification";
-import BreadcrumbNavigation from "../../../components/Homepage/BreadcrumbNavigation";
-import { useNavigateToFolder } from "../../../hooks/useNavigateToFolder";
-import { useGetCurrentFolderItems } from "../../../hooks/useGetCurrentFolderItems";
+import { useTranslations } from "next-intl";
+import { formatFileSize } from "../../../../lib/formating/formatFileSize";
+import { handleDownloadFile } from "../../../../lib/download/handleDownloadFile";
+import { BACKEND_URL, ERROR_MESSAGES } from "../../../../lib/api/constants";
+import { getFileIcon } from "../../../../lib/formating/getFileIcon";
+import { CollectionData } from "../../../../lib/interfaces/CollectionData.interface";
+import { sendDownloadNotification } from "../../../../lib/download/sendDownloadNotification";
+import BreadcrumbNavigation from "../../../../components/Homepage/BreadcrumbNavigation";
+import { useNavigateToFolder } from "../../../../hooks/useNavigateToFolder";
+import { useGetCurrentFolderItems } from "../../../../hooks/useGetCurrentFolderItems";
 
 // Download-specific interfaces
 interface DownloadFolderItem {
@@ -33,6 +34,7 @@ interface DownloadPageProps {
 
 export default function DownloadPage({ params }: DownloadPageProps) {
   const { collectionId } = React.use(params);
+  const t = useTranslations("DownloadPage");
 
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
     {} as CollectionData
@@ -202,7 +204,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       <div className="px-8 py-6 flex items-start justify-center w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
         <div className="w-full h-full flex-col flex items-start justify-start gap-6">
           <div>
-            <h1 className="text-3xl font-bold w-full">Download Files</h1>
+            <h1 className="text-3xl font-bold w-full">{t("title")}</h1>
             <div className="flex items-center justify-start gap-2 fill-gray-700 w-full">
               <svg
                 className="w-5 h-5"
@@ -218,11 +220,15 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                   </g>
                 </g>
               </svg>
-              <p className="text-gray-700">{`${
-                collectionData?.creator
-              } uploaded ${collectionData?.fileCount} files at ${new Date(
-                collectionData?.createdAt || ""
-              ).toLocaleString()}`}</p>
+              <p className="text-gray-700">
+                {t("uploadedBy", {
+                  creator: collectionData?.creator,
+                  count: collectionData?.fileCount,
+                  date: new Date(
+                    collectionData?.createdAt || ""
+                  ).toLocaleString(),
+                })}
+              </p>
             </div>
           </div>
           <button
@@ -256,10 +262,10 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span>Preparing Download...</span>
+                <span>{t("preparingDownload")}</span>
               </div>
             ) : (
-              "Download All (ZIP)"
+              t("downloadAll")
             )}
           </button>
 
@@ -273,13 +279,15 @@ export default function DownloadPage({ params }: DownloadPageProps) {
           {folderStructure.length > 0 && (
             <div className="w-full border border-gray-400 px-4 rounded-md min-h-[200px]">
               <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                <h5 className="text-gray-700 font-medium">Files & Folders</h5>
+                <h5 className="text-gray-700 font-medium">
+                  {t("filesAndFolders")}
+                </h5>
               </div>
 
               <div className="py-2">
                 {getCurrentFolderItems.length === 0 ? (
                   <p className="text-gray-400 text-center py-8">
-                    No files or folders
+                    {t("noFiles")}
                   </p>
                 ) : (
                   getCurrentFolderItems.map((item) => (
@@ -385,20 +393,18 @@ export default function DownloadPage({ params }: DownloadPageProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-2xl font-bold mb-4">
-              This download is password protected!
+              {t("passwordProtected")}
             </h2>
-            <p className="mb-4">
-              Please enter the password to access the files.
-            </p>
+            <p className="mb-4">{t("enterPassword")}</p>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                {t("password")}
               </label>
               <input
                 type="text"
                 value={passwordInput}
-                placeholder="Enter password"
+                placeholder={t("enterPasswordPlaceholder")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-widest"
                 onChange={(e) => {
                   setPasswordInput(e.target.value);
@@ -415,7 +421,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                 onClick={() => setOpenPasswordModal(false)}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors cursor-pointer"
               >
-                Close
+                {t("close")}
               </button>
               <button
                 onClick={async () => {
@@ -448,7 +454,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                   "flex-1 font-bold py-2 px-4 rounded-md transition-colors bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
                 }
               >
-                Verify
+                {t("verify")}
               </button>
             </div>
           </div>
