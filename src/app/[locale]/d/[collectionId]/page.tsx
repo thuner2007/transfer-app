@@ -13,7 +13,6 @@ import BreadcrumbNavigation from "../../../../components/Homepage/BreadcrumbNavi
 import { useNavigateToFolder } from "../../../../hooks/useNavigateToFolder";
 import { useGetCurrentFolderItems } from "../../../../hooks/useGetCurrentFolderItems";
 import LanguageSwitcher from "../../../../components/LanguageSwitcher";
-import { ResumableDownloadManager } from "../../../../lib/download/resumableDownload";
 
 // Download-specific interfaces
 interface DownloadFolderItem {
@@ -51,9 +50,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   const [hasSentDownloadNotification, setHasSentDownloadNotification] =
     useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [downloadManager, setDownloadManager] =
-    useState<ResumableDownloadManager | null>(null);
 
   // Folder navigation state
   const { currentFolderPath, breadcrumbs, navigateToFolder } =
