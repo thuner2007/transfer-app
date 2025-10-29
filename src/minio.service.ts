@@ -105,9 +105,9 @@ export class MinioService {
         zlib: { level: 1 }, // Set compression level
         store: false,
         forceLocalTime: true,
-        statConcurrency: 10, // Process multiple files concurrently
+        statConcurrency: 3, // Process multiple files concurrently
         allowHalfOpen: false,
-        highWaterMark: 1024 * 1024, // 1MB buffer size for streams
+        highWaterMark: 1024 * 256, // 256kb buffer size for streams
       });
 
       // Handle archive errors
@@ -142,7 +142,7 @@ export class MinioService {
           console.log(`Creating zip with ${files.length} files`);
 
           // Process multiple files concurrently
-          const concurrencyLimit = 10; // Process 10 files at once
+          const concurrencyLimit = 3; // Process 3 files at once
           const processingPromises: Promise<void>[] = [];
 
           for (let i = 0; i < files.length; i += concurrencyLimit) {
