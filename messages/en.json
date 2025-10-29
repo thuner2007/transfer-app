@@ -49,5 +49,15 @@
     "downloadTimeout": "Download timeout - the file might be too large. Please try again or contact support.",
     "passwordIncorrect": "Incorrect password",
     "verificationFailed": "Verification failed"
+  },
+  "VerificationEmailModal": {
+    "title": "Verify Your Email",
+    "description": "We've sent a verification code to your email. Please enter it below.",
+    "code": "Verification Code",
+    "enterCode": "Enter 6-digit code",
+    "verify": "Verify",
+    "close": "Close",
+    "invalidCode": "Invalid verification code",
+    "note": "NOTE: Please also check your spam folder!"
   }
 }

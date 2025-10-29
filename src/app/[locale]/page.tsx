@@ -22,7 +22,7 @@ export default function Home() {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
   const [downloadLink, setDownloadLink] = useState<string>(
-    "https://transfer.cwx-dev.com"
+    "https://transfer.cwx-dev.com/"
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -439,7 +439,7 @@ export default function Home() {
                 isUploading ||
                 !filesWithPaths ||
                 filesWithPaths.length === 0 ||
-                downloadLink !== "https://transfer.cwx-dev.com" ||
+                downloadLink !== "https://transfer.cwx-dev.com/" ||
                 !userMail.trim()
               }
               onClick={() => uploadFiles(userMail)}
@@ -447,7 +447,7 @@ export default function Home() {
                 isUploading ||
                 !filesWithPaths ||
                 filesWithPaths.length === 0 ||
-                downloadLink !== "https://transfer.cwx-dev.com" ||
+                downloadLink !== "https://transfer.cwx-dev.com/" ||
                 !userMail.trim()
                   ? "bg-gray-400 cursor-not-allowed opacity-60"
                   : "bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"

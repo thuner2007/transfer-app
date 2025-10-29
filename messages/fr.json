@@ -49,5 +49,15 @@
     "downloadTimeout": "Délai de téléchargement dépassé - le fichier pourrait être trop volumineux. Veuillez réessayer ou contacter le support.",
     "passwordIncorrect": "Mot de passe incorrect",
     "verificationFailed": "Échec de la vérification"
+  },
+  "VerificationEmailModal": {
+    "title": "Vérifier votre e-mail",
+    "description": "Nous avons envoyé un code de vérification à votre e-mail. Veuillez l'entrer ci-dessous.",
+    "code": "Code de vérification",
+    "enterCode": "Entrer le code à 6 chiffres",
+    "verify": "Vérifier",
+    "close": "Fermer",
+    "invalidCode": "Code de vérification invalide",
+    "note": "REMARQUE : Veuillez également vérifier votre dossier de spam !"
   }
 }

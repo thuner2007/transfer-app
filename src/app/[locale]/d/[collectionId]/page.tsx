@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { formatFileSize } from "../../../../lib/formating/formatFileSize";
 import { handleDownloadFile } from "../../../../lib/download/handleDownloadFile";
 import { BACKEND_URL, ERROR_MESSAGES } from "../../../../lib/api/constants";
@@ -11,6 +12,7 @@ import { sendDownloadNotification } from "../../../../lib/download/sendDownloadN
 import BreadcrumbNavigation from "../../../../components/Homepage/BreadcrumbNavigation";
 import { useNavigateToFolder } from "../../../../hooks/useNavigateToFolder";
 import { useGetCurrentFolderItems } from "../../../../hooks/useGetCurrentFolderItems";
+import LanguageSwitcher from "../../../../components/LanguageSwitcher";
 
 // Download-specific interfaces
 interface DownloadFolderItem {
@@ -34,6 +36,8 @@ interface DownloadPageProps {
 
 export default function DownloadPage({ params }: DownloadPageProps) {
   const { collectionId } = React.use(params);
+  const urlParams = useParams();
+  const locale = urlParams.locale as string;
   const t = useTranslations("DownloadPage");
 
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
@@ -203,8 +207,11 @@ export default function DownloadPage({ params }: DownloadPageProps) {
     <div className="flex items-start pt-32 justify-center w-screen h-screen">
       <div className="px-8 py-6 flex items-start justify-center w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
         <div className="w-full h-full flex-col flex items-start justify-start gap-6">
-          <div>
-            <h1 className="text-3xl font-bold w-full">{t("title")}</h1>
+          <div className="w-full">
+            <div className="flex items-center justify-between w-full">
+              <h1 className="text-3xl font-bold">{t("title")}</h1>
+              <LanguageSwitcher currentLocale={locale} />
+            </div>
             <div className="flex items-center justify-start gap-2 fill-gray-700 w-full">
               <svg
                 className="w-5 h-5"

@@ -49,5 +49,15 @@
     "downloadTimeout": "Download-Zeitüberschreitung - die Datei könnte zu groß sein. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
     "passwordIncorrect": "Falsches Passwort",
     "verificationFailed": "Verifizierung fehlgeschlagen"
+  },
+  "VerificationEmailModal": {
+    "title": "E-Mail verifizieren",
+    "description": "Wir haben einen Verifizierungscode an Ihre E-Mail gesendet. Bitte geben Sie ihn unten ein.",
+    "code": "Verifizierungscode",
+    "enterCode": "6-stelligen Code eingeben",
+    "verify": "Überprüfen",
+    "close": "Schließen",
+    "invalidCode": "Ungültiger Verifizierungscode",
+    "note": "HINWEIS: Überprüfen Sie auch Ihren Spam-Ordner!"
   }
 }

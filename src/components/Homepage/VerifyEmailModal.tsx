@@ -37,6 +37,8 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
         setMailVerified(true);
         setVerifyModalOpen(false);
         console.log("Email verified successfully!");
+      } else if (response.data.verifyStatus === "invalid_code") {
+        setVerificationError(ERROR_MESSAGES.INVALID_VERIFICATION_CODE);
       } else {
         setVerificationError(ERROR_MESSAGES.INVALID_VERIFICATION_CODE);
       }
