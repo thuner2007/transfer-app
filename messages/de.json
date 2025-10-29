@@ -16,7 +16,15 @@
     "expirationTime": "Ablaufzeit",
     "days": "Tage",
     "downloadLink": "Download-Link",
-    "shareQR": "QR-Code teilen"
+    "shareQR": "QR-Code teilen",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "cancel": "Abbrechen",
+    "pendingUpload": "Upload läuft",
+    "resumeUploadMessage": "Sie haben einen unfertigen Upload. Möchten Sie fortfahren?",
+    "uploadPaused": "Upload pausiert",
+    "uploadCancelled": "Upload abgebrochen",
+    "resumingUpload": "Upload wird fortgesetzt..."
   },
   "DownloadPage": {
     "title": "Dateien herunterladen",
@@ -32,7 +40,13 @@
     "close": "Schließen",
     "verify": "Überprüfen",
     "incorrectPassword": "Falsches Passwort",
-    "downloadFile": "Datei herunterladen"
+    "downloadFile": "Datei herunterladen",
+    "pause": "Download pausieren",
+    "resume": "Download fortsetzen",
+    "downloading": "Wird heruntergeladen...",
+    "downloadPaused": "Download pausiert",
+    "resumeDownload": "Download fortsetzen",
+    "cancelDownload": "Download abbrechen"
   },
   "VerifyEmail": {
     "title": "E-Mail verifizieren",

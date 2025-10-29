@@ -16,7 +16,15 @@
     "expirationTime": "Délai d'expiration",
     "days": "jours",
     "downloadLink": "Lien de téléchargement",
-    "shareQR": "Partager le code QR"
+    "shareQR": "Partager le code QR",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "cancel": "Annuler",
+    "pendingUpload": "Téléchargement en cours",
+    "resumeUploadMessage": "Vous avez un téléchargement inachevé. Continuer où vous vous êtes arrêté?",
+    "uploadPaused": "Téléchargement en pause",
+    "uploadCancelled": "Téléchargement annulé",
+    "resumingUpload": "Reprise du téléchargement..."
   },
   "DownloadPage": {
     "title": "Télécharger les fichiers",
@@ -32,7 +40,13 @@
     "close": "Fermer",
     "verify": "Vérifier",
     "incorrectPassword": "Mot de passe incorrect",
-    "downloadFile": "Télécharger le fichier"
+    "downloadFile": "Télécharger le fichier",
+    "pause": "Mettre en pause",
+    "resume": "Reprendre",
+    "downloading": "Téléchargement...",
+    "downloadPaused": "Téléchargement en pause",
+    "resumeDownload": "Reprendre le téléchargement",
+    "cancelDownload": "Annuler le téléchargement"
   },
   "VerifyEmail": {
     "title": "Vérifier votre e-mail",

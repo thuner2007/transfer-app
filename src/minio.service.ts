@@ -607,4 +607,54 @@ export class MinioService {
       return [];
     }
   }
+
+  /**
+   * Get file statistics (size, metadata, etc.)
+   */
+  async getFileStats(
+    bucketName: string,
+    fileName: string
+  ): Promise<Minio.BucketItemStat> {
+    try {
+      const stat = await this.minioClient.statObject(bucketName, fileName);
+      return stat;
+    } catch (error) {
+      console.error(`Error getting file stats for ${fileName}:`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to get file stats: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Download a specific byte range of a file (for resumable downloads)
+   */
+  async downloadFileRange(
+    bucketName: string,
+    fileName: string,
+    start: number,
+    end: number
+  ): Promise<NodeJS.ReadableStream | null> {
+    try {
+      const exists = await this.minioClient.bucketExists(bucketName);
+      if (!exists) {
+        console.log(`Bucket ${bucketName} does not exist`);
+        return null;
+      }
+
+      // Get the file stream with range
+      const fileStream = await this.minioClient.getPartialObject(
+        bucketName,
+        fileName,
+        start,
+        end - start + 1
+      );
+      return fileStream;
+    } catch (error) {
+      console.error(`Error downloading file range ${start}-${end}:`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to download file range: ${errorMessage}`);
+    }
+  }
 }

@@ -402,14 +402,21 @@ async function handleChunkedUpload(
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const collectionId = url.searchParams.get("collectionId");
+  const fileName = url.searchParams.get("fileName");
 
   if (!collectionId) {
     return new Response("Collection ID is required", { status: 400 });
   }
 
   try {
-    console.log(`Starting zip download for collection: ${collectionId}`);
+    console.log(`Starting download for collection: ${collectionId}`);
 
+    // Check if this is a single file download request
+    if (fileName) {
+      return handleSingleFileDownload(request, collectionId, fileName);
+    }
+
+    // Handle full collection ZIP download
     const zipStream = await minioService.downloadAllFilesAsZip(collectionId);
 
     if (!zipStream) {
@@ -456,6 +463,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        "Accept-Ranges": "bytes",
         "Cache-Control": "no-cache",
         "Transfer-Encoding": "chunked",
         "X-Accel-Buffering": "no",
@@ -466,6 +474,95 @@ export async function GET(request: Request) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     return new Response(`Failed to download files: ${errorMessage}`, {
+      status: 500,
+    });
+  }
+}
+
+/**
+ * Handle single file download with Range request support for resumable downloads
+ */
+async function handleSingleFileDownload(
+  request: Request,
+  collectionId: string,
+  fileName: string
+): Promise<Response> {
+  try {
+    // Get the file from MinIO
+    const stream = await minioService.downloadFile(collectionId, fileName);
+
+    if (!stream) {
+      return new Response("File not found", { status: 404 });
+    }
+
+    // Get file metadata
+    const stat = await minioService.getFileStats(collectionId, fileName);
+    const fileSize = stat.size;
+
+    // Check for Range header
+    const rangeHeader = request.headers.get("Range");
+
+    if (rangeHeader) {
+      // Parse range header (format: bytes=start-end)
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (!match) {
+        return new Response("Invalid Range header", { status: 400 });
+      }
+
+      const start = parseInt(match[1], 10);
+      const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize || start > end) {
+        return new Response("Range not satisfiable", {
+          status: 416,
+          headers: {
+            "Content-Range": `bytes */${fileSize}`,
+          },
+        });
+      }
+
+      // Stream the requested range
+      const rangeStream = await minioService.downloadFileRange(
+        collectionId,
+        fileName,
+        start,
+        end
+      );
+
+      if (!rangeStream) {
+        return new Response("Failed to get file range", { status: 500 });
+      }
+
+      const contentLength = end - start + 1;
+
+      return new Response(rangeStream as unknown as ReadableStream, {
+        status: 206, // Partial Content
+        headers: {
+          "Content-Type":
+            stat.metaData?.["content-type"] || "application/octet-stream",
+          "Content-Length": contentLength.toString(),
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Disposition": `attachment; filename="${fileName}"`,
+        },
+      });
+    }
+
+    // No range header, return full file
+    return new Response(stream as unknown as ReadableStream, {
+      status: 200,
+      headers: {
+        "Content-Type":
+          stat.metaData?.["content-type"] || "application/octet-stream",
+        "Content-Length": fileSize.toString(),
+        "Accept-Ranges": "bytes",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
+    });
+  } catch (error) {
+    console.error("Single file download error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return new Response(`Failed to download file: ${errorMessage}`, {
       status: 500,
     });
   }
