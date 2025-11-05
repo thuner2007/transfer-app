@@ -28,7 +28,7 @@
   },
   "DownloadPage": {
     "title": "Dateien herunterladen",
-    "uploadedBy": "{creator} hat {count} Dateien hochgeladen am {date}",
+    "uploadedBy": "{creator} hat {count} Datei(en) hochgeladen am {date}",
     "downloadAll": "Alle herunterladen (ZIP)",
     "preparingDownload": "Download wird vorbereitet...",
     "filesAndFolders": "Dateien & Ordner",
@@ -46,7 +46,8 @@
     "downloading": "Wird heruntergeladen...",
     "downloadPaused": "Download pausiert",
     "resumeDownload": "Download fortsetzen",
-    "cancelDownload": "Download abbrechen"
+    "cancelDownload": "Download abbrechen",
+    "loading": "Wird geladen..."
   },
   "VerifyEmail": {
     "title": "E-Mail verifizieren",

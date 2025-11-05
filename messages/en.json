@@ -46,7 +46,8 @@
     "downloading": "Downloading...",
     "downloadPaused": "Download Paused",
     "resumeDownload": "Resume Download",
-    "cancelDownload": "Cancel Download"
+    "cancelDownload": "Cancel Download",
+    "loading": "Loading..."
   },
   "VerifyEmail": {
     "title": "Verify Your Email",

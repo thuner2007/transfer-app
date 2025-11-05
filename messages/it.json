@@ -46,7 +46,8 @@
     "downloading": "Download in corso...",
     "downloadPaused": "Download in pausa",
     "resumeDownload": "Riprendi download",
-    "cancelDownload": "Annulla download"
+    "cancelDownload": "Annulla download",
+    "loading": "Caricamento..."
   },
   "VerifyEmail": {
     "title": "Verifica la tua email",

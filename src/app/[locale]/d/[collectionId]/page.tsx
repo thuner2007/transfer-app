@@ -40,6 +40,8 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   const locale = urlParams.locale as string;
   const t = useTranslations("DownloadPage");
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const [collectionData, setCollectionData] = React.useState<CollectionData>(
     {} as CollectionData
   );
@@ -177,6 +179,7 @@ export default function DownloadPage({ params }: DownloadPageProps) {
         const structure = buildFolderStructure(response.data.files);
         setFolderStructure(structure);
       }
+      setIsLoading(false);
     } catch (err) {
       console.error(ERROR_MESSAGES.FETCH_INFO_FAILED, err);
     }
@@ -211,32 +214,34 @@ export default function DownloadPage({ params }: DownloadPageProps) {
             <div className="flex items-center justify-between w-full">
               <h1 className="text-3xl font-bold">{t("title")}</h1>
               <LanguageSwitcher currentLocale={locale} />
-            </div>
-            <div className="flex items-center justify-start gap-2 fill-gray-700 w-full">
-              <svg
-                className="w-5 h-5"
-                version="1.1"
-                id="Capa_1"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 416.979 416.979"
-              >
-                <g stroke-linecap="round" stroke-linejoin="round"></g>
-                <g>
+            </div>{" "}
+            {!isLoading && (
+              <div className="flex items-center justify-start gap-2 fill-gray-700 w-full">
+                <svg
+                  className="w-5 h-5"
+                  version="1.1"
+                  id="Capa_1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 416.979 416.979"
+                >
+                  <g stroke-linecap="round" stroke-linejoin="round"></g>
                   <g>
-                    <path d="M356.004,61.156c-81.37-81.47-213.377-81.551-294.848-0.182c-81.47,81.371-81.552,213.379-0.181,294.85 c81.369,81.47,213.378,81.551,294.849,0.181C437.293,274.636,437.375,142.626,356.004,61.156z M237.6,340.786 c0,3.217-2.607,5.822-5.822,5.822h-46.576c-3.215,0-5.822-2.605-5.822-5.822V167.885c0-3.217,2.607-5.822,5.822-5.822h46.576 c3.215,0,5.822,2.604,5.822,5.822V340.786z M208.49,137.901c-18.618,0-33.766-15.146-33.766-33.765 c0-18.617,15.147-33.766,33.766-33.766c18.619,0,33.766,15.148,33.766,33.766C242.256,122.755,227.107,137.901,208.49,137.901z"></path>{" "}
+                    <g>
+                      <path d="M356.004,61.156c-81.37-81.47-213.377-81.551-294.848-0.182c-81.47,81.371-81.552,213.379-0.181,294.85 c81.369,81.47,213.378,81.551,294.849,0.181C437.293,274.636,437.375,142.626,356.004,61.156z M237.6,340.786 c0,3.217-2.607,5.822-5.822,5.822h-46.576c-3.215,0-5.822-2.605-5.822-5.822V167.885c0-3.217,2.607-5.822,5.822-5.822h46.576 c3.215,0,5.822,2.604,5.822,5.822V340.786z M208.49,137.901c-18.618,0-33.766-15.146-33.766-33.765 c0-18.617,15.147-33.766,33.766-33.766c18.619,0,33.766,15.148,33.766,33.766C242.256,122.755,227.107,137.901,208.49,137.901z"></path>{" "}
+                    </g>
                   </g>
-                </g>
-              </svg>
-              <p className="text-gray-700">
-                {t("uploadedBy", {
-                  creator: collectionData?.creator,
-                  count: collectionData?.fileCount,
-                  date: new Date(
-                    collectionData?.createdAt || ""
-                  ).toLocaleString(),
-                })}
-              </p>
-            </div>
+                </svg>
+                <p>
+                  {t("uploadedBy", {
+                    creator: collectionData?.creator,
+                    count: collectionData?.fileCount,
+                    date: new Date(
+                      collectionData?.createdAt || ""
+                    ).toLocaleString(),
+                  })}
+                </p>
+              </div>
+            )}
           </div>
           <button
             onClick={() => downloadAll()}
@@ -464,6 +469,33 @@ export default function DownloadPage({ params }: DownloadPageProps) {
                 {t("verify")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg flex items-center gap-4">
+            <svg
+              className="animate-spin h-8 w-8 text-blue-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-gray-700 text-lg">{t("loading")}</span>
           </div>
         </div>
       )}
