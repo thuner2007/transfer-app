@@ -1,6 +1,4 @@
-import { PrismaClient } from "../../../../generated/prisma";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../lib/PrismaClient";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -10,7 +8,7 @@ export async function GET(request: Request) {
     return new Response("Collection ID is required", { status: 400 });
   }
 
-  const collectionEntry = await prismaService.collection.findUnique({
+  const collectionEntry = await prisma.collection.findUnique({
     where: { id: collectionId },
     include: { files: true },
   });

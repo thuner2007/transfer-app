@@ -1,15 +1,13 @@
 import { NextRequest } from "next/server";
-import { PrismaClient } from "../../../../generated/prisma";
 import { sendMail } from "../../../../lib/mail/SendMail";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../lib/PrismaClient";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { collectionId } = body;
 
   // Find the collection in the database
-  const collection = await prismaService.collection.findUnique({
+  const collection = await prisma.collection.findUnique({
     where: { id: collectionId },
   });
 

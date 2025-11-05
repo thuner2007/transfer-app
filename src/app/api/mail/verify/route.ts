@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "../../../../generated/prisma";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../lib/PrismaClient";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { code, email } = body;
 
-  const verificationEntry = await prismaService.verification.findUnique({
+  const verificationEntry = await prisma.verification.findUnique({
     where: { email: email },
   });
 
@@ -16,7 +14,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (verificationEntry.code === code) {
-    await prismaService.verification.update({
+    await prisma.verification.update({
       where: { email: email },
       data: {
         verified: true,

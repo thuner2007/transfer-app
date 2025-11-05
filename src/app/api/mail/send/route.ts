@@ -1,10 +1,8 @@
-import { PrismaClient } from "../../../../generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 // Import cleanup service to auto-start it
 import "../../../../cleanup-service";
 import { sendMail } from "../../../../lib/mail/SendMail";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../lib/PrismaClient";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if a verification entry already exists for this email
-    const existingEntry = await prismaService.verification.findUnique({
+    const existingEntry = await prisma.verification.findUnique({
       where: { email: email },
     });
 
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest) {
       }
       // If entry exists but not verified, return status
       // Update the existing entry with a new code and validity
-      await prismaService.verification.update({
+      await prisma.verification.update({
         where: { email: email },
         data: {
           code: Math.floor(100000 + Math.random() * 900000), // Generate a new 6-digit code
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create verification entry in the database
-    const verificationEntry = await prismaService.verification.create({
+    const verificationEntry = await prisma.verification.create({
       data: {
         email: email,
         verified: false,

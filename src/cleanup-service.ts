@@ -1,13 +1,12 @@
-import { PrismaClient } from "./generated/prisma";
+import { prisma } from "./lib/PrismaClient";
 import { MinioService } from "./minio.service";
 
-const prismaService = new PrismaClient();
 const minioService = new MinioService();
 
 // Cleanup function to delete expired verification entries
 const cleanupExpiredVerifications = async () => {
   try {
-    const result = await prismaService.verification.deleteMany({
+    const result = await prisma.verification.deleteMany({
       where: {
         verified: false,
         validUntil: {
@@ -40,7 +39,7 @@ const cleanupExpiredVerifications = async () => {
 // Cleanup function to delete expired download links
 const cleanupExpiredDownloadLinks = async () => {
   try {
-    const expiredCollections = await prismaService.collection.findMany({
+    const expiredCollections = await prisma.collection.findMany({
       where: {
         expirationTime: {
           lt: new Date(),
@@ -51,7 +50,7 @@ const cleanupExpiredDownloadLinks = async () => {
     for (const collection of expiredCollections) {
       await minioService.deleteBucket(collection.id);
 
-      await prismaService.collection.delete({
+      await prisma.collection.delete({
         where: {
           id: collection.id,
         },

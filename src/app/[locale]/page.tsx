@@ -17,6 +17,10 @@ import {
   UploadStateManager,
   type CollectionUploadState,
 } from "../../lib/upload/uploadStateManager";
+import ResumeUploadButton from "../../components/Homepage/Buttons/ResumeUploadButton";
+import PauseButton from "../../components/Homepage/Buttons/PauseButton";
+import UploadProgressBar from "../../components/Homepage/UploadProgressBar";
+import UploadButton from "../../components/Homepage/Buttons/UploadButton";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -707,190 +711,36 @@ export default function Home() {
             )}
 
             {isUploading && (
-              <div className="w-full space-y-2 mb-4">
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span className="truncate max-w-[70%]">
-                    {currentFileName || t("preparingUpload")}
-                  </span>
-                  <span className="font-semibold">
-                    {Math.round(uploadProgress)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
-                    style={{ width: `${uploadProgress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
-                  </div>
-                </div>
-              </div>
+              <UploadProgressBar
+                currentFileName={currentFileName}
+                uploadProgress={uploadProgress}
+                t={t}
+              />
             )}
 
             {/* Resume upload button - shown when there's a pending upload */}
             {!isUploading && hasPendingUpload && (
-              <div className="w-full p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-md mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg
-                        className="w-5 h-5 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p className="font-semibold text-blue-900">
-                        {t("pendingUpload")}
-                      </p>
-                    </div>
-                    <p className="text-sm text-blue-700 mb-1">
-                      {t("resumeUploadMessage")}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-blue-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="h-full bg-blue-600 rounded-full transition-all"
-                          style={{ width: `${pendingProgress}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-blue-700">
-                        {Math.round(pendingProgress)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={resumeUpload}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      {t("resume")}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        await UploadStateManager.clearState();
-                        setHasPendingUpload(false);
-                        setPendingProgress(0);
-                      }}
-                      className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                      title={t("cancel")}
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <ResumeUploadButton
+                resumeUpload={resumeUpload}
+                pendingProgress={pendingProgress}
+                t={t}
+                setHasPendingUpload={setHasPendingUpload}
+                setPendingProgress={setPendingProgress}
+              />
             )}
 
             <div className="w-full flex gap-2">
-              <button
-                disabled={
-                  isUploading ||
-                  !filesWithPaths ||
-                  filesWithPaths.length === 0 ||
-                  downloadLink !== "https://transfer.cwx-dev.com/" ||
-                  !userMail.trim()
-                }
-                onClick={() => uploadFiles(userMail, false)}
-                className={`text-white font-bold text-xl flex-1 p-3 rounded-md transition-all duration-200 ${
-                  isUploading ||
-                  !filesWithPaths ||
-                  filesWithPaths.length === 0 ||
-                  downloadLink !== "https://transfer.cwx-dev.com/" ||
-                  !userMail.trim()
-                    ? "bg-gray-400 cursor-not-allowed opacity-60"
-                    : "bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
-                }`}
-              >
-                {isUploading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    {t("uploading")}
-                  </span>
-                ) : (
-                  t("upload")
-                )}
-              </button>
+              <UploadButton
+                isUploading={isUploading}
+                filesWithPaths={filesWithPaths}
+                downloadLink={downloadLink}
+                userMail={userMail}
+                uploadFiles={uploadFiles}
+                t={t}
+              />
 
               {/* Pause button - only shown during upload */}
-              {isUploading && (
-                <button
-                  onClick={pauseUpload}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xl px-6 p-3 rounded-md transition-all duration-200 cursor-pointer hover:shadow-lg"
-                  title={t("pause") || "Pause"}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </button>
-              )}
+              {isUploading && <PauseButton pauseUpload={pauseUpload} t={t} />}
             </div>
           </div>
         </div>

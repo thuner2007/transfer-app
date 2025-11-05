@@ -1,8 +1,7 @@
-import { PrismaClient } from "../../../../generated/prisma";
+import { prisma } from "../../../../lib/PrismaClient";
 import { MinioService } from "../../../../minio.service";
 
 const minioService = new MinioService();
-const prismaService = new PrismaClient();
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -14,7 +13,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const collectionEntry = await prismaService.collection.findUnique({
+  const collectionEntry = await prisma.collection.findUnique({
     where: { id: collectionId },
     include: { files: true },
   });

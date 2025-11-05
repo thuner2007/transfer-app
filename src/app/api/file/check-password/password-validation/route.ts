@@ -1,6 +1,4 @@
-import { PrismaClient } from "../../../../../generated/prisma";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../../lib/PrismaClient";
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +6,7 @@ export async function POST(request: Request) {
     const { collectionId, password } = body;
 
     // Check if collection exists and password is correct
-    const collection = await prismaService.collection.findUnique({
+    const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
     });
 

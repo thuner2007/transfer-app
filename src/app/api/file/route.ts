@@ -1,9 +1,8 @@
 import { randomUUID } from "crypto";
 import { MinioService } from "../../../minio.service";
-import { PrismaClient } from "../../../generated/prisma";
+import { prisma } from "../../../lib/PrismaClient";
 
 const minioService = new MinioService();
-const prismaService = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
@@ -129,7 +128,7 @@ export async function POST(request: Request) {
       process.env.DOWNLOAD_SERVICE_URL + "/d/" + collectionUuid;
 
     // Save collection metadata to database
-    await prismaService.collection.create({
+    await prisma.collection.create({
       data: {
         id: collectionUuid,
         downloadlink: downloadUrl,
@@ -162,7 +161,7 @@ export async function POST(request: Request) {
       console.log("Uploading file:", file.name);
 
       await minioService.uploadFile(collectionUuid, file);
-      await prismaService.file.create({
+      await prisma.file.create({
         data: {
           filename: file.name,
           mimetype: file.type,
@@ -270,7 +269,7 @@ async function handleChunkedUpload(
       collectionUuid = randomUUID();
       downloadUrl = process.env.DOWNLOAD_SERVICE_URL + "d/" + collectionUuid;
 
-      await prismaService.collection.create({
+      await prisma.collection.create({
         data: {
           id: collectionUuid,
           downloadlink: downloadUrl,
@@ -290,7 +289,7 @@ async function handleChunkedUpload(
     } else {
       collectionUuid = collectionId;
       // Get the download URL from existing collection
-      const collection = await prismaService.collection.findUnique({
+      const collection = await prisma.collection.findUnique({
         where: { id: collectionId },
       });
       downloadUrl = collection?.downloadlink || undefined;
@@ -335,7 +334,7 @@ async function handleChunkedUpload(
       );
 
       // Add file to database
-      await prismaService.file.create({
+      await prisma.file.create({
         data: {
           filename: mergedFile.fileName,
           mimetype: mergedFile.mimetype,
@@ -349,7 +348,7 @@ async function handleChunkedUpload(
       });
 
       // Update collection metadata
-      await prismaService.collection.update({
+      await prisma.collection.update({
         where: {
           id: collectionUuid,
         },
@@ -423,7 +422,7 @@ export async function GET(request: Request) {
       return new Response("Collection not found", { status: 404 });
     }
 
-    const collection = await prismaService.collection.findUnique({
+    const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
       select: { creator: true, createdAt: true },
     });

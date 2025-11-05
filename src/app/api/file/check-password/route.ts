@@ -1,6 +1,4 @@
-import { PrismaClient } from "../../../../generated/prisma";
-
-const prismaService = new PrismaClient();
+import { prisma } from "../../../../lib/PrismaClient";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +9,7 @@ export async function POST(request: Request) {
       return new Response("Collection ID is required", { status: 400 });
     }
 
-    const hasPassword = await prismaService.collection.findUnique({
+    const hasPassword = await prisma.collection.findUnique({
       where: { id: collectionId },
       select: { hasPassword: true },
     });
