@@ -61,6 +61,13 @@ export default function Home() {
         const progress = await UploadStateManager.getProgress();
         setHasPendingUpload(true);
         setPendingProgress(progress);
+        
+        // Restore email from first file's state
+        if (pendingState.files.length > 0 && pendingState.files[0].mail) {
+          setUserMail(pendingState.files[0].mail);
+          setMailVerified(true); // Email was already verified when upload started
+        }
+        
         if (pendingState.collectionId) {
           const downloadUrl =
             process.env.NEXT_PUBLIC_DOWNLOAD_SERVICE_URL +
@@ -610,8 +617,18 @@ export default function Home() {
     await UploadStateManager.resumeUpload();
     setHasPendingUpload(false);
 
+    // Get mail from saved state if userMail is empty
+    const state = await UploadStateManager.loadState();
+    const mailToUse = userMail || (state?.files[0]?.mail) || '';
+    
+    if (!mailToUse) {
+      console.error("No email found for resume");
+      setUploadError("Email not found. Please start a new upload.");
+      return;
+    }
+
     // Call uploadFiles with resumeMode = true
-    uploadFiles(userMail, true);
+    uploadFiles(mailToUse, true);
   };
 
   return (
