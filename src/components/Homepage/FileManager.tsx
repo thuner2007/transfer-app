@@ -13,12 +13,14 @@ interface FileManagerProps {
   setFilesWithPathsExt: React.Dispatch<React.SetStateAction<FileWithPath[]>>;
   selectedFiles: FileList | null;
   onFilesSelected: (files: FileList | null) => void;
+  t: (key: string) => string;
 }
 
 const FileManager: React.FC<FileManagerProps> = ({
   setFilesWithPathsExt,
   selectedFiles,
   onFilesSelected,
+  t,
 }) => {
   const { currentFolderPath, breadcrumbs, navigateToFolder } =
     useNavigateToFolder();
@@ -290,7 +292,7 @@ const FileManager: React.FC<FileManagerProps> = ({
     );
 
     if (availablePaths.length === 0) {
-      alert("No other folders available to move to!");
+      alert(t("noOtherFoldersAvailableToMove"));
       return;
     }
 
@@ -418,7 +420,7 @@ const FileManager: React.FC<FileManagerProps> = ({
       <div className="w-full border border-gray-400 px-4 rounded-md min-h-[200px]">
         {/* New Folder Button and Input */}
         <div className="flex items-center justify-between py-2 border-b border-gray-200">
-          <h5 className="text-gray-700 font-medium">Files & Folders</h5>
+          <h5 className="text-gray-700 font-medium">{t("filesAndFolders")}</h5>
           <div className="flex items-center gap-2">
             {showNewFolderInput ? (
               <div className="flex items-center gap-2">
@@ -431,7 +433,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                       createFolder(newFolderName);
                     }
                   }}
-                  placeholder="Folder name"
+                  placeholder={t("folderName")}
                   className="border border-gray-300 rounded px-2 py-1 text-sm"
                   autoFocus
                 />
@@ -439,7 +441,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   onClick={() => createFolder(newFolderName)}
                   className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
                 >
-                  Create
+                  {t("create")}
                 </button>
                 <button
                   onClick={() => {
@@ -448,7 +450,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   }}
                   className="bg-gray-500 text-white px-2 py-1 rounded text-sm hover:bg-gray-600"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
               </div>
             ) : (
@@ -470,7 +472,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                New Folder
+                {t("newFolder")}
               </button>
             )}
           </div>
@@ -480,7 +482,7 @@ const FileManager: React.FC<FileManagerProps> = ({
         <div className="py-2">
           {getCurrentFolderItems.length === 0 ? (
             <p className="text-gray-400 text-center py-8">
-              No files or folders
+              {t("noFilesOrFolders")}
             </p>
           ) : (
             getCurrentFolderItems.map((item) => (
@@ -536,7 +538,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   <span
                     className="text-gray-500 text-sm cursor-pointer"
                     onClick={() => moveItem(item)}
-                    title="Move to folder"
+                    title={t("moveToFolder")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -554,7 +556,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   <span
                     className="text-gray-500 text-sm cursor-pointer"
                     onClick={() => renameItem(item)}
-                    title="Rename"
+                    title={t("rename")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -573,7 +575,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   <span
                     className="text-gray-500 text-sm cursor-pointer"
                     onClick={() => deleteItem(item)}
-                    title="Delete"
+                    title={t("delete")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -596,14 +598,15 @@ const FileManager: React.FC<FileManagerProps> = ({
         {showMoveDialog && itemToMove && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h2 className="text-2xl font-bold mb-4">Move Item</h2>
+              <h2 className="text-2xl font-bold mb-4">{t("moveItem")}</h2>
               <p className="mb-4">
-                Select the destination folder for &quot;{itemToMove.name}&quot;:
+                {t("selectTheDestinationFolderFor")} &quot;{itemToMove.name}
+                &quot;:
               </p>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Destination Folder
+                  {t("destinationFolder")}
                 </label>
                 <select
                   value={selectedTargetPath}
@@ -629,7 +632,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   }}
                   className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={() => {
@@ -642,7 +645,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   }}
                   className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors cursor-pointer"
                 >
-                  Move
+                  {t("move")}
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { expirationDropdownOptions } from "../../lib/app/expirationDropdownOptions";
+import { useTranslations } from "next-intl";
 
 interface SettingsPanelProps {
   passwordRequired: boolean;
@@ -24,6 +25,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
+  const t = useTranslations("SettingsPanel");
+
   return (
     <div className="border border-gray-400 p-4 rounded-md w-full flex items-center justify-center flex-col gap-2">
       {/* Password input with checkbox */}
@@ -47,23 +50,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           className={`flex-1 outline-none p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
             passwordRequired ? "bg-white" : "cursor-not-allowed"
           }`}
-          placeholder="Password"
+          placeholder={t("password")}
         />
       </div>
 
       {/* Expiration time */}
       <div className="flex items-center justify-between w-full mt-2 border border-gray-400 p-2 rounded-md">
-        <span className="text-md text-gray-700">Expiration time:</span>
+        <span className="text-md text-gray-700">{t("expirationTime")}:</span>
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center justify-between px-2 py-1 text-md text-gray-700 bg-white min-w-[80px] text-left cursor-pointer"
           >
-            {
+            {t(
               expirationDropdownOptions.find(
                 (opt) => opt.value === expirationTime
-              )?.label
-            }
+              )?.label || ""
+            )}
             <svg
               className={`w-8 h-8 ml-2 transition-transform ${
                 isDropdownOpen ? "rotate-180" : ""
@@ -96,7 +99,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       : "text-gray-700"
                   }`}
                 >
-                  {option.label}
+                  {t(option.label)}
                 </button>
               ))}
             </div>
@@ -106,7 +109,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       {/* Expiration info */}
       <p className="w-full text-md text-gray-700">
-        Link expires in {expirationTime} day(s)
+        {t("linkExpiresInDays", { days: expirationTime })}
       </p>
 
       {/* Email notification toggle */}
@@ -124,7 +127,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           />
         </button>
         <span className="ml-3 text-sm text-gray-700">
-          Email me when files are downloaded
+          {t("emailMeWhenDownloaded")}
         </span>
       </div>
     </div>

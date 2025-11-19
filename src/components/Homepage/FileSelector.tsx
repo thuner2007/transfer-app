@@ -9,6 +9,7 @@ import { formatFileSize } from "../../lib/formating/formatFileSize";
 interface FileSelectorProps {
   selectedFiles: FileList | null;
   onFilesSelected: (files: FileList | null) => void;
+  t: (key: string) => string;
 }
 
 const MAX_TOTAL_FILE_SIZE = 50 * 1024 * 1024 * 1024; // 50GB
@@ -16,6 +17,7 @@ const MAX_TOTAL_FILE_SIZE = 50 * 1024 * 1024 * 1024; // 50GB
 const FileSelector: React.FC<FileSelectorProps> = ({
   selectedFiles,
   onFilesSelected,
+  t,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [sizeError, setSizeError] = useState<string>("");
@@ -154,11 +156,11 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               isDragging ? "text-blue-600" : "text-gray-700"
             }`}
           >
-            {isDragging ? "Drop files here!" : "Select files"}
+            {isDragging ? t("dropFilesHere") : t("selectFiles")}
           </h2>
-          <p className="text-gray-500 text-sm">or drag & drop</p>
+          <p className="text-gray-500 text-sm">{t("orDragDrop")}</p>
           <p className="text-gray-400 text-xs mt-2">
-            Maximum total size: {formatFileSize(MAX_TOTAL_FILE_SIZE)}
+            {t("maxTotalSize")}: {formatFileSize(MAX_TOTAL_FILE_SIZE)}
           </p>
           {selectedFiles &&
             selectedFiles.length > 0 &&

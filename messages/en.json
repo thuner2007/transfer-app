@@ -24,7 +24,37 @@
     "resumeUploadMessage": "You have an unfinished upload. Continue where you left off?",
     "uploadPaused": "Upload Paused",
     "uploadCancelled": "Upload Cancelled",
-    "resumingUpload": "Resuming upload..."
+    "resumingUpload": "Resuming upload...",
+    "maxTotalSize": "Maximum Total Size",
+    "orDragDrop": "or drag & drop files here",
+    "newFolder": "New Folder",
+    "filesAndFolders": "Files & Folders",
+    "noFilesOrFolders": "No files or folders",
+    "moveToFolder": "Move to Folder",
+    "rename": "Rename",
+    "delete": "Delete",
+    "noOtherFoldersAvailableToMove": "No other folders available to move",
+    "folderName": "Folder Name",
+    "create": "Create",
+    "moveItem": "Move Item",
+    "selectTheDestinationFolderFor": "Select the destination folder for",
+    "destinationFolder": "Destination Folder",
+    "move": "Move"
+  },
+  "SettingsPanel": {
+    "1_day": "1 day",
+    "3_days": "3 days",
+    "5_days": "5 days",
+    "1_week": "1 week",
+    "2_weeks": "2 weeks",
+    "linkExpiresInDays": "Link expires in {days} days",
+    "expirationTime": "Expiration Time",
+    "password": "Password",
+    "emailMeWhenDownloaded": "Email me when files are downloaded"
+  },
+  "SharePanel": {
+    "share": "Share",
+    "copy": "Copy"
   },
   "DownloadPage": {
     "title": "Download Files",

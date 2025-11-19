@@ -24,7 +24,37 @@
     "resumeUploadMessage": "Hai un caricamento non completato. Continuare da dove ti sei fermato?",
     "uploadPaused": "Caricamento in pausa",
     "uploadCancelled": "Caricamento annullato",
-    "resumingUpload": "Ripresa del caricamento..."
+    "resumingUpload": "Ripresa del caricamento...",
+    "maxTotalSize": "Dimensione totale massima",
+    "orDragDrop": "o trascina i file qui",
+    "newFolder": "Nuova cartella",
+    "filesAndFolders": "File e cartelle",
+    "noFilesOrFolders": "Nessun file o cartella",
+    "moveToFolder": "Sposta nella cartella",
+    "rename": "Rinomina",
+    "delete": "Elimina",
+    "noOtherFoldersAvailableToMove": "Nessun'altra cartella disponibile per lo spostamento",
+    "folderName": "Nome cartella",
+    "create": "Crea",
+    "moveItem": "Sposta elemento",
+    "selectTheDestinationFolderFor": "Seleziona la cartella di destinazione per",
+    "destinationFolder": "Cartella di destinazione",
+    "move": "Sposta"
+  },
+  "SettingsPanel": {
+    "1_day": "1 giorno",
+    "3_days": "3 giorni",
+    "5_days": "5 giorni",
+    "1_week": "1 settimana",
+    "2_weeks": "2 settimane",
+    "linkExpiresInDays": "Il link scade in {days} giorni",
+    "expirationTime": "Tempo di scadenza",
+    "password": "Password",
+    "emailMeWhenDownloaded": "Inviami un'email quando i file vengono scaricati"
+  },
+  "SharePanel": {
+    "share": "Condividi",
+    "copy": "Copia"
   },
   "DownloadPage": {
     "title": "Scarica file",

@@ -15,18 +15,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(
-      `Checking chunk status for collection: ${collectionId}, fileId: ${fileId}`
-    );
-
     // Get uploaded chunks from MinIO
     const uploadedChunks = await minioService.getUploadedChunks(
       collectionId,
       fileId
-    );
-
-    console.log(
-      `Found ${uploadedChunks.length} uploaded chunks for fileId: ${fileId}`
     );
 
     return Response.json({

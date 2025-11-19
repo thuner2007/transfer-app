@@ -24,7 +24,37 @@
     "resumeUploadMessage": "Sie haben einen unfertigen Upload. Möchten Sie fortfahren?",
     "uploadPaused": "Upload pausiert",
     "uploadCancelled": "Upload abgebrochen",
-    "resumingUpload": "Upload wird fortgesetzt..."
+    "resumingUpload": "Upload wird fortgesetzt...",
+    "maxTotalSize": "Maximale Gesammtgrösse",
+    "orDragDrop": "oder ziehen Sie die Dateien hierher",
+    "newFolder": "Neuer Ordner",
+    "filesAndFolders": "Dateien & Ordner",
+    "noFilesOrFolders": "Keine Dateien oder Ordner",
+    "moveToFolder": "In Ordner verschieben",
+    "rename": "Umbenennen",
+    "delete": "Löschen",
+    "noOtherFoldersAvailableToMove": "Keine anderen Ordner zum Verschieben verfügbar",
+    "folderName": "Ordnername",
+    "create": "Erstellen",
+    "moveItem": "Element verschieben",
+    "selectTheDestinationFolderFor": "Wählen Sie den Zielordner für",
+    "destinationFolder": "Zielordner",
+    "move": "Verschieben"
+  },
+  "SettingsPanel": {
+    "1_day": "1 Tag",
+    "3_days": "3 Tage",
+    "5_days": "5 Tage",
+    "1_week": "1 Woche",
+    "2_weeks": "2 Wochen",
+    "linkExpiresInDays": "Link läuft in {days} Tagen ab",
+    "expirationTime": "Ablaufzeit",
+    "password": "Passwort",
+    "emailMeWhenDownloaded": "Senden Sie mir eine E-Mail, wenn die Dateien heruntergeladen wurden"
+  },
+  "SharePanel": {
+    "share": "Teilen",
+    "copy": "Kopieren"
   },
   "DownloadPage": {
     "title": "Dateien herunterladen",

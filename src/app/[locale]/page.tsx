@@ -21,6 +21,8 @@ import ResumeUploadButton from "../../components/Homepage/Buttons/ResumeUploadBu
 import PauseButton from "../../components/Homepage/Buttons/PauseButton";
 import UploadProgressBar from "../../components/Homepage/UploadProgressBar";
 import UploadButton from "../../components/Homepage/Buttons/UploadButton";
+import { sanitizeFilePath } from "../../lib/formating/sanitizeFilePath";
+import { sanitizeFilename } from "../../lib/formating/sanitizeFilename";
 
 export default function Home() {
   const t = useTranslations("HomePage");
@@ -54,7 +56,7 @@ export default function Home() {
   const [pendingProgress, setPendingProgress] = useState<number>(0);
   const uploadAbortController = useRef<AbortController | null>(null);
 
-  // Initialize IndexedDB and check for pending uploads on mount
+  // Initialize IndexedDB and check for pending uploads
   useEffect(() => {
     const initAndCheckPending = async () => {
       await UploadStateManager.init();
@@ -85,53 +87,6 @@ export default function Home() {
 
     initAndCheckPending();
   }, []);
-
-  // Edit filename to be good for MinIO storage
-  const sanitizeFilename = (filename: string): string => {
-    // Save the file extension
-    const lastDotIndex = filename.lastIndexOf(".");
-    const name =
-      lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
-    const extension = lastDotIndex > 0 ? filename.substring(lastDotIndex) : "";
-
-    // Replace problematic characters with safe alternatives
-    const sanitizedName =
-      name
-        // Replace spaces with underscores
-        .replace(/\s+/g, "_")
-        // Replace special characters with underscores or remove them
-        .replace(/[^\w\-_.]/g, "_")
-        // Remove multiple consecutive underscores
-        .replace(/_+/g, "_")
-        // Remove leading/trailing underscores
-        .replace(/^_+|_+$/g, "") ||
-      // Ensure it's not empty
-      "file";
-
-    // Edit extension (keep only alphanumeric and the dot)
-    const sanitizedExtension = extension.replace(/[^\w.]/g, "");
-
-    // Limit total filename length to 200 characters (Minio limit is 1024, but we keep it shorter to be safe)
-    const maxLength = 200;
-    const fullName = sanitizedName + sanitizedExtension;
-
-    if (fullName.length > maxLength) {
-      const extensionLength = sanitizedExtension.length;
-      const nameLength = maxLength - extensionLength;
-      return sanitizedName.substring(0, nameLength) + sanitizedExtension;
-    }
-
-    return fullName;
-  };
-
-  // Edit file path (for folders)
-  const sanitizeFilePath = (filePath: string): string => {
-    return filePath
-      .split("/")
-      .map((part) => (part.trim() ? sanitizeFilename(part) : ""))
-      .filter((part) => part !== "")
-      .join("/");
-  };
 
   // Generate QR code when downloadLink changes
   useEffect(() => {
@@ -198,7 +153,6 @@ export default function Home() {
 
     // When resuming, sync with backend to get actual uploaded chunks
     if (fileId && collectionId) {
-      console.log(`Syncing state with backend for fileId: ${generatedFileId}`);
       try {
         const response = await axios.get(`${BACKEND_URL}/file/chunk-status`, {
           params: { collectionId, fileId: generatedFileId },
@@ -206,9 +160,6 @@ export default function Home() {
         if (response.data.uploadedChunks) {
           // Update local state with actual server-side chunks
           const serverChunks = response.data.uploadedChunks as number[];
-          console.log(
-            `Backend has ${serverChunks.length} chunks for this file`
-          );
 
           // Clear local state and resync with server
           const state = await UploadStateManager.loadState();
@@ -243,9 +194,6 @@ export default function Home() {
                 state.uploadedSize - oldUploadedSize + newUploadedSize;
 
               await UploadStateManager.saveState(state);
-              console.log(
-                `Synced local state with server: ${serverChunks.length} chunks, ${newUploadedSize} bytes uploaded`
-              );
             }
           }
         }
@@ -277,23 +225,16 @@ export default function Home() {
       // Check if upload is paused
       const state = await UploadStateManager.loadState();
       if (state?.isPaused) {
-        console.log("Upload paused by user");
         throw new Error("Upload paused");
       }
 
       // Check if we should abort
       if (uploadAbortController.current?.signal.aborted) {
-        console.log("Upload aborted");
         throw new Error("Upload aborted");
       }
 
       // Skip if chunk already uploaded
       if (await isChunkAlreadyUploaded(chunkNumber)) {
-        console.log(
-          `Chunk ${chunkNumber + 1}/${totalChunks} already uploaded for ${
-            file.name
-          }, skipping`
-        );
         // Don't update progress for skipped chunks - they were already counted
         continue;
       }
@@ -360,7 +301,6 @@ export default function Home() {
         );
 
         if (response.data.fileComplete) {
-          console.log(`File ${file.name} uploaded successfully`);
           // Set download URL if this is the first file and we have a callback
           if (response.data.downloadUrl && setDownloadUrlCallback) {
             setDownloadUrlCallback(response.data.downloadUrl);
@@ -393,7 +333,7 @@ export default function Home() {
           error
         );
 
-        // Log the full error response for debugging
+        // Log full error response
         if (error && typeof error === "object" && "response" in error) {
           const axiosError = error as {
             response?: { data?: unknown; status?: number };
@@ -415,21 +355,17 @@ export default function Home() {
 
   const uploadFiles = async (mail: string, resumeMode: boolean = false) => {
     if (!resumeMode && (!filesWithPaths || filesWithPaths.length === 0)) {
-      console.error("No files selected for upload");
       return;
     }
 
     if (!mailVerified) {
-      console.log("Data to verify:", { mail, verificationCode });
       const response = await axios.post(`${BACKEND_URL}/mail/send`, {
         email: mail,
       });
       if (response.data.error) {
-        console.error("Error verifying email:", response.data.error);
         return;
       }
       if (response.data.verifyStatus === "pending") {
-        console.log("Verification email sent. Please verify your email.");
         setVerifyModalOpen(true);
         return;
       } else if (response.data.verifyStatus === "verified") {
@@ -449,19 +385,12 @@ export default function Home() {
       // Check if we're resuming
       const existingState = await UploadStateManager.loadState();
       if (resumeMode && existingState) {
-        console.log("Resuming upload from previous state");
         collectionId = existingState.collectionId;
         startFileIndex = existingState.currentFileIndex;
         const currentProgress = await UploadStateManager.getProgress();
         setUploadProgress(currentProgress);
 
         // Use the existing state for tracking
-        console.log(
-          `Resuming from file ${startFileIndex + 1}/${
-            existingState.files.length
-          }`
-        );
-
         if (existingState.collectionId) {
           const downloadUrl =
             process.env.NEXT_PUBLIC_DOWNLOAD_SERVICE_URL +
@@ -507,7 +436,6 @@ export default function Home() {
         setUploadProgress(0);
       }
 
-      const totalFiles = filesToUpload.length;
       let completedFiles = startFileIndex;
 
       // Calculate total size for accurate progress
@@ -522,18 +450,7 @@ export default function Home() {
         const state = await UploadStateManager.loadState();
         const fileState = state?.files[i];
 
-        console.log(`File ${i} upload info:`, {
-          fileName: fileWithPath.file.name,
-          stateFileId: fileState?.fileId,
-          hasFileState: !!fileState,
-          uploadedChunks: fileState?.uploadedChunks?.length || 0,
-        });
-
         try {
-          console.log(
-            `Starting upload for file: ${fileWithPath.file.name} (${fileWithPath.file.size} bytes)`
-          );
-
           setCurrentFileName(fileWithPath.file.name);
 
           const result = await uploadFileInChunks(
@@ -557,21 +474,12 @@ export default function Home() {
 
           completedFiles++;
           await UploadStateManager.moveToNextFile();
-
-          console.log(
-            `File ${completedFiles}/${totalFiles} completed: ${fileWithPath.file.name}`
-          );
         } catch (fileError) {
           const errorMsg = (fileError as Error).message;
           if (errorMsg === "Upload paused" || errorMsg === "Upload cancelled") {
-            console.log("Upload paused, saving state");
             return; // Exit without clearing state
           }
 
-          console.error(
-            `Failed to upload file ${fileWithPath.file.name}:`,
-            fileError
-          );
           throw new Error(
             `Failed to upload ${fileWithPath.file.name}: ${errorMsg}`
           );
@@ -579,7 +487,6 @@ export default function Home() {
       }
 
       setUploadProgress(100);
-      console.log("All files uploaded successfully!");
       setCurrentFileName("");
 
       // Clear upload state after successful completion
@@ -588,7 +495,6 @@ export default function Home() {
     } catch (error) {
       const errorMsg = (error as Error).message;
       if (errorMsg !== "Upload paused" && errorMsg !== "Upload cancelled") {
-        console.error("Upload error:", error);
         setUploadError(ERROR_MESSAGES.UPLOAD_FAILED + ": " + errorMsg);
       }
     } finally {
@@ -602,7 +508,6 @@ export default function Home() {
   };
 
   const pauseUpload = async () => {
-    console.log("Pausing upload");
     setHasPendingUpload(true);
 
     // Get current progress before pausing
@@ -617,7 +522,6 @@ export default function Home() {
   };
 
   const resumeUpload = async () => {
-    console.log("Resuming upload");
     await UploadStateManager.resumeUpload();
     setHasPendingUpload(false);
 
@@ -626,7 +530,6 @@ export default function Home() {
     const mailToUse = userMail || state?.files[0]?.mail || "";
 
     if (!mailToUse) {
-      console.error("No email found for resume");
       setUploadError("Email not found. Please start a new upload.");
       return;
     }
@@ -667,12 +570,14 @@ export default function Home() {
             <FileSelector
               selectedFiles={selectedFiles}
               onFilesSelected={setSelectedFiles}
+              t={t}
             />
 
             <FileManager
               setFilesWithPathsExt={setFilesWithPaths}
               selectedFiles={selectedFiles}
               onFilesSelected={setSelectedFiles}
+              t={t}
             />
           </div>
           <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">

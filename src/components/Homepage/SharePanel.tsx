@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 interface SharePanelProps {
@@ -11,6 +12,8 @@ const SharePanel: React.FC<SharePanelProps> = ({
   uploadProgress,
   qrCodeData,
 }) => {
+  const t = useTranslations("SharePanel");
+
   return (
     <div className="flex items-center justify-between w-full gap-2">
       <div className="w-5/6 flex flex-col items-center justify-center gap-2">
@@ -39,7 +42,7 @@ const SharePanel: React.FC<SharePanelProps> = ({
                 : "cursor-not-allowed opacity-25"
             }`}
           >
-            Copy
+            {t("copy")}
           </button>
           <button
             disabled={uploadProgress !== 100}
@@ -65,7 +68,7 @@ const SharePanel: React.FC<SharePanelProps> = ({
                 : "cursor-not-allowed opacity-25"
             }`}
           >
-            Share
+            {t("share")}
           </button>
         </div>
       </div>

@@ -45,9 +45,6 @@ const STATE_ID = "current";
 export class UploadStateManager {
   private static useIndexedDB = true;
 
-  /**
-   * Initialize the manager
-   */
   static async init(): Promise<void> {
     try {
       await indexedDBManager.init();
@@ -58,9 +55,6 @@ export class UploadStateManager {
     }
   }
 
-  /**
-   * Save upload state
-   */
   static async saveState(state: CollectionUploadState): Promise<void> {
     try {
       if (this.useIndexedDB) {
@@ -84,9 +78,6 @@ export class UploadStateManager {
     }
   }
 
-  /**
-   * Load upload state
-   */
   static async loadState(): Promise<CollectionUploadState | null> {
     try {
       if (this.useIndexedDB) {
@@ -117,9 +108,6 @@ export class UploadStateManager {
     }
   }
 
-  /**
-   * Clear upload state
-   */
   static async clearState(): Promise<void> {
     try {
       if (this.useIndexedDB) {
@@ -132,9 +120,6 @@ export class UploadStateManager {
     }
   }
 
-  /**
-   * Update specific file state
-   */
   static async updateFileState(
     fileId: string,
     updates: Partial<UploadState>
@@ -151,9 +136,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Mark a chunk as uploaded
-   */
   static async markChunkUploaded(
     fileId: string,
     chunkNumber: number,
@@ -176,9 +158,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Check if a specific chunk has been uploaded
-   */
   static async isChunkUploaded(
     fileId: string,
     chunkNumber: number
@@ -190,9 +169,6 @@ export class UploadStateManager {
     return file ? file.uploadedChunks.includes(chunkNumber) : false;
   }
 
-  /**
-   * Pause upload
-   */
   static async pauseUpload(): Promise<void> {
     const state = await this.loadState();
     if (!state) return;
@@ -202,9 +178,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Resume upload
-   */
   static async resumeUpload(): Promise<void> {
     const state = await this.loadState();
     if (!state) return;
@@ -214,9 +187,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Set collection ID
-   */
   static async setCollectionId(collectionId: string): Promise<void> {
     const state = await this.loadState();
     if (!state) return;
@@ -226,9 +196,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Move to next file
-   */
   static async moveToNextFile(): Promise<void> {
     const state = await this.loadState();
     if (!state) return;
@@ -238,9 +205,6 @@ export class UploadStateManager {
     await this.saveState(state);
   }
 
-  /**
-   * Check if there are pending uploads
-   */
   static async hasPendingUploads(): Promise<boolean> {
     const state = await this.loadState();
     if (!state) return false;
@@ -250,9 +214,6 @@ export class UploadStateManager {
     );
   }
 
-  /**
-   * Get upload progress percentage
-   */
   static async getProgress(): Promise<number> {
     const state = await this.loadState();
     if (!state || state.totalSize === 0) return 0;
@@ -260,9 +221,6 @@ export class UploadStateManager {
     return (state.uploadedSize / state.totalSize) * 100;
   }
 
-  /**
-   * Get current file being uploaded
-   */
   static async getCurrentFile(): Promise<UploadState | null> {
     const state = await this.loadState();
     if (!state) return null;

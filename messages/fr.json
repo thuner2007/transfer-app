@@ -24,7 +24,37 @@
     "resumeUploadMessage": "Vous avez un téléchargement inachevé. Continuer où vous vous êtes arrêté?",
     "uploadPaused": "Téléchargement en pause",
     "uploadCancelled": "Téléchargement annulé",
-    "resumingUpload": "Reprise du téléchargement..."
+    "resumingUpload": "Reprise du téléchargement...",
+    "maxTotalSize": "Taille totale maximale",
+    "orDragDrop": "ou glissez-déposez les fichiers ici",
+    "newFolder": "Nouveau dossier",
+    "filesAndFolders": "Fichiers et dossiers",
+    "noFilesOrFolders": "Aucun fichier ou dossier",
+    "moveToFolder": "Déplacer vers le dossier",
+    "rename": "Renommer",
+    "delete": "Supprimer",
+    "noOtherFoldersAvailableToMove": "Aucun autre dossier disponible pour le déplacement",
+    "folderName": "Nom du dossier",
+    "create": "Créer",
+    "moveItem": "Déplacer l'élément",
+    "selectTheDestinationFolderFor": "Sélectionnez le dossier de destination pour",
+    "destinationFolder": "Dossier de destination",
+    "move": "Déplacer"
+  },
+  "SettingsPanel": {
+    "1_day": "1 jour",
+    "3_days": "3 jours",
+    "5_days": "5 jours",
+    "1_week": "1 semaine",
+    "2_weeks": "2 semaines",
+    "linkExpiresInDays": "Le lien expire dans {days} jours",
+    "expirationTime": "Délai d'expiration",
+    "password": "Mot de passe",
+    "emailMeWhenDownloaded": "Envoyez-moi un e-mail lorsque les fichiers sont téléchargés"
+  },
+  "SharePanel": {
+    "share": "Partager",
+    "copy": "Copier"
   },
   "DownloadPage": {
     "title": "Télécharger les fichiers",
