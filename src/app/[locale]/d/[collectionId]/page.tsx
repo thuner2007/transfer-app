@@ -198,12 +198,12 @@ export default function DownloadPage({ params }: DownloadPageProps) {
   }, []);
 
   return (
-    <div className="flex items-start pt-32 justify-center w-screen h-screen">
-      <div className="px-8 py-6 flex items-start justify-center w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
-        <div className="w-full h-full flex-col flex items-start justify-start gap-6">
+    <div className="flex items-start pt-8 md:pt-32 justify-center w-screen min-h-screen px-4 md:px-0">
+      <div className="px-4 md:px-8 py-4 md:py-6 flex items-start justify-center w-full md:w-2/3 max-w-6xl min-h-4/5 bg-white rounded-2xl">
+        <div className="w-full h-full flex-col flex items-start justify-start gap-4 md:gap-6">
           <div className="w-full">
-            <div className="flex items-center justify-between w-full">
-              <h1 className="text-3xl font-bold">{t("title")}</h1>
+            <div className="flex items-start justify-between w-full gap-2">
+              <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
               <LanguageSwitcher currentLocale={locale} />
             </div>{" "}
             {!isLoading && !openPasswordModal && (

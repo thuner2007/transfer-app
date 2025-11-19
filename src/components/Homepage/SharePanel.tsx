@@ -15,8 +15,8 @@ const SharePanel: React.FC<SharePanelProps> = ({
   const t = useTranslations("SharePanel");
 
   return (
-    <div className="flex items-center justify-between w-full gap-2">
-      <div className="w-5/6 flex flex-col items-center justify-center gap-2">
+    <div className="flex flex-col md:flex-row items-center justify-between w-full gap-4">
+      <div className="w-full md:w-5/6 flex flex-col items-center justify-center gap-2">
         <div className="text-gray-700  border border-gray-400 rounded-md w-full p-2">
           <p
             onClick={() => window.open(downloadLink, "_blank")?.focus()}
@@ -73,13 +73,13 @@ const SharePanel: React.FC<SharePanelProps> = ({
         </div>
       </div>
 
-      <div className="border border-gray-400 rounded-md bg-white h-25 w-25 flex items-center justify-center p-1">
+      <div className="border border-gray-400 rounded-md bg-white h-32 w-32 md:h-25 md:w-25 flex items-center justify-center p-1">
         {qrCodeData ? (
           <Image
             src={qrCodeData}
             alt="QR Code for download link"
-            width={72}
-            height={72}
+            width={120}
+            height={120}
             className={`w-full h-full object-contain ${
               uploadProgress === 100
                 ? "cursor-pointer"

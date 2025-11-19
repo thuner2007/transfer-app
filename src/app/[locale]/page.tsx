@@ -539,11 +539,11 @@ export default function Home() {
   };
 
   return (
-    <div className="flex items-start justify-center w-screen h-screen pt-26">
-      <div className="px-8 py-4 flex items-center justify-center w-4/5 max-w-6xl min-h-4/5 bg-white rounded-2xl flex-col">
-        <div className="p-4 w-full h-20 flex items-start justify-between">
+    <div className="flex items-start justify-center w-screen min-h-screen pt-8 md:pt-26 px-4 md:px-0">
+      <div className="px-4 md:px-8 py-4 flex items-center justify-center w-full md:w-4/5 max-w-6xl min-h-4/5 bg-white rounded-2xl flex-col">
+        <div className="p-2 md:p-4 w-full min-h-16 md:h-20 flex items-start justify-between gap-2">
           <h1
-            className="text-4xl font-bold text-start mb-4 cursor-pointer"
+            className="text-2xl md:text-4xl font-bold text-start mb-2 md:mb-4 cursor-pointer"
             onClick={() => {
               window.location.reload();
             }}
@@ -553,10 +553,12 @@ export default function Home() {
           <LanguageSwitcher currentLocale={locale} />
         </div>
 
-        <div className="w-full h-full flex items-start justify-center">
-          <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">
+        <div className="w-full h-full flex flex-col md:flex-row items-start justify-center">
+          <div className="w-full md:w-1/2 h-full flex items-center justify-start gap-4 md:gap-6 flex-col p-2 md:p-4">
             <div className="w-full flex items-center justify-between flex-col gap-1">
-              <h4 className="text-xl w-full text-gray-700">{t("yourEmail")}</h4>
+              <h4 className="text-lg md:text-xl w-full text-gray-700">
+                {t("yourEmail")}
+              </h4>
               <input
                 className="border border-gray-400 p-2 rounded-md w-full"
                 placeholder={t("enterEmail")}
@@ -580,9 +582,11 @@ export default function Home() {
               t={t}
             />
           </div>
-          <div className="w-1/2 h-full flex items-center justify-start gap-6 flex-col p-4">
+          <div className="w-full md:w-1/2 h-full flex items-center justify-start gap-4 md:gap-6 flex-col p-2 md:p-4">
             <div className="w-full flex items-center justify-between flex-col gap-1">
-              <h4 className="text-xl w-full text-gray-700">{t("sendTo")}</h4>
+              <h4 className="text-lg md:text-xl w-full text-gray-700">
+                {t("sendTo")}
+              </h4>
               <input
                 className="border border-gray-400 p-2 rounded-md w-full"
                 placeholder={t("enterEmail")}

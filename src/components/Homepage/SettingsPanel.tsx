@@ -28,9 +28,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const t = useTranslations("SettingsPanel");
 
   return (
-    <div className="border border-gray-400 p-4 rounded-md w-full flex items-center justify-center flex-col gap-2">
+    <div className="border border-gray-400 p-3 md:p-4 rounded-md w-full flex items-center justify-center flex-col gap-2">
       {/* Password input with checkbox */}
-      <div className="flex items-center border border-gray-400 p-2 rounded-md w-full mt-2">
+      <div className="flex items-center border border-gray-400 p-2 rounded-md w-full mt-2 overflow-hidden">
         <input
           checked={passwordRequired}
           onChange={() => {
@@ -40,14 +40,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             }
           }}
           type="checkbox"
-          className="mr-2 w-5 h-5 rounded-md appearance-none border border-gray-400 checked:bg-blue-500 checked:border-blue-500 relative checked:after:content-['✕'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:w-full checked:after:h-full"
+          className="mr-2 w-6 h-6 md:w-5 md:h-5 rounded-md appearance-none border-2 border-gray-400 checked:bg-blue-500 checked:border-blue-500 relative checked:after:content-['✕'] checked:after:text-white checked:after:text-base md:checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:flex checked:after:items-center checked:after:justify-center checked:after:w-full checked:after:h-full flex-shrink-0"
         />
         <input
           disabled={!passwordRequired}
           value={passwordInput}
           onChange={(e) => setPasswordInput(e.target.value)}
           type="password"
-          className={`flex-1 outline-none p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+          className={`w-0 min-w-0 flex-1 md:max-w-none outline-none p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
             passwordRequired ? "bg-white" : "cursor-not-allowed"
           }`}
           placeholder={t("password")}
@@ -56,7 +56,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       {/* Expiration time */}
       <div className="flex items-center justify-between w-full mt-2 border border-gray-400 p-2 rounded-md">
-        <span className="text-md text-gray-700">{t("expirationTime")}:</span>
+        <span className="text-base md:text-md text-gray-700">
+          {t("expirationTime")}:
+        </span>
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -108,7 +110,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       </div>
 
       {/* Expiration info */}
-      <p className="w-full text-md text-gray-700">
+      <p className="w-full text-base md:text-md text-gray-700">
         {t("linkExpiresInDays", { days: expirationTime })}
       </p>
 
@@ -116,17 +118,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       <div className="flex items-center w-full mt-2">
         <button
           onClick={() => setEmailNotification(!emailNotification)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+          className={`relative inline-flex h-8 w-14 md:h-6 md:w-11 items-center rounded-full transition-colors flex-shrink-0 ${
             emailNotification ? "bg-blue-500" : "bg-gray-300"
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              emailNotification ? "translate-x-6" : "translate-x-1"
+            className={`inline-block h-6 w-6 md:h-4 md:w-4 transform rounded-full bg-white transition-transform ${
+              emailNotification
+                ? "translate-x-7 md:translate-x-6"
+                : "translate-x-1"
             }`}
           />
         </button>
-        <span className="ml-3 text-sm text-gray-700">
+        <span className="ml-3 text-base md:text-sm text-gray-700">
           {t("emailMeWhenDownloaded")}
         </span>
       </div>

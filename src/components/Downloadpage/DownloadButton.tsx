@@ -15,8 +15,8 @@ const DownloadingButton = ({
       disabled={isDownloading}
       className={
         isDownloading
-          ? "text-white font-bold text-xl w-1/3 p-3 rounded-md transition-all duration-200 bg-gray-500 cursor-not-allowed"
-          : "text-white font-bold text-xl w-1/3 p-3 rounded-md transition-all duration-200 bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
+          ? "text-white font-bold text-base md:text-xl w-full md:w-1/3 p-3 rounded-md transition-all duration-200 bg-gray-500 cursor-not-allowed"
+          : "text-white font-bold text-base md:text-xl w-full md:w-1/3 p-3 rounded-md transition-all duration-200 bg-blue-500 cursor-pointer hover:bg-blue-600 hover:shadow-lg"
       }
     >
       {isDownloading ? (
