@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/workspace:cached # Changed from .. to .
+      - .:/workspace:cached
       - /var/run/docker.sock:/var/run/docker-host.sock
     networks:
       - transfer-app-network
