@@ -8,6 +8,7 @@ import { sanitizeFilename } from "../formating/sanitizeFilename";
 export interface UploadFileInChunksParams {
   fileWithPath: FileWithPath;
   mail: string;
+  receiver: string;
   collectionId?: string;
   setDownloadUrlCallback?: (url: string) => void;
   onChunkProgress?: (chunkSize: number) => void;
@@ -17,11 +18,13 @@ export interface UploadFileInChunksParams {
   passwordRequired: boolean;
   passwordInput: string;
   uploadAbortController: React.MutableRefObject<AbortController | null>;
+  isLastFile: boolean;
 }
 
 export const uploadFileInChunks = async ({
   fileWithPath,
   mail,
+  receiver,
   collectionId,
   setDownloadUrlCallback,
   onChunkProgress,
@@ -31,6 +34,7 @@ export const uploadFileInChunks = async ({
   passwordRequired,
   passwordInput,
   uploadAbortController,
+  isLastFile,
 }: UploadFileInChunksParams): Promise<string> => {
   const CHUNK_SIZE = 30 * 1024 * 1024; // 30MB chunks
   const file = fileWithPath.file;
@@ -164,8 +168,12 @@ export const uploadFileInChunks = async ({
     formData.append("mimeType", file.type);
     formData.append("chunk", chunkBlob);
     formData.append("creator", mail);
+    formData.append("receiver", receiver);
     if (emailNotification) {
       formData.append("wantsToGetNotified", "true");
+    }
+    if (isLastFile) {
+      formData.append("isLastFile", "true");
     }
 
     // Always include settings with first chunk of first file, or for existing collection
@@ -265,6 +273,7 @@ export const uploadFileInChunks = async ({
 export interface UploadFilesParams {
   filesWithPaths: FileWithPath[];
   mail: string;
+  receiverMail: string;
   resumeMode: boolean;
   mailVerified: boolean;
   expirationTime: number;
@@ -286,6 +295,7 @@ export interface UploadFilesParams {
 export const uploadFiles = async ({
   filesWithPaths,
   mail,
+  receiverMail,
   resumeMode,
   mailVerified,
   expirationTime,
@@ -405,6 +415,7 @@ export const uploadFiles = async ({
         const result = await uploadFileInChunks({
           fileWithPath,
           mail,
+          receiver: receiverMail,
           collectionId,
           setDownloadUrlCallback:
             completedFiles === 0 ? setDownloadLink : undefined,
@@ -419,6 +430,7 @@ export const uploadFiles = async ({
           passwordRequired,
           passwordInput,
           uploadAbortController,
+          isLastFile: i === filesToUpload.length - 1,
         });
 
         if (!collectionId) {

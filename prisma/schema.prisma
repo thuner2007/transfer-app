@@ -13,6 +13,7 @@ model collection {
   downloadlink   String?
   createdAt      DateTime @default(now())
   creator        String   @default("anonymous")
+  receiver       String?
   fileCount      Int      @default(0)
   filesSize      BigInt   @default(0)
   password       String?

@@ -102,6 +102,7 @@ export default function Home() {
     await uploadFiles({
       filesWithPaths,
       mail,
+      receiverMail,
       resumeMode,
       mailVerified,
       expirationTime,

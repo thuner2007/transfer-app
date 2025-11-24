@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { MinioService } from "../../../minio.service";
 import { prisma } from "../../../lib/PrismaClient";
+import { sendMail } from "../../../lib/mail/SendMail";
 
 const minioService = new MinioService();
 
@@ -113,6 +114,7 @@ export async function POST(request: Request) {
 
     const files = formData.getAll("files");
     const creator = formData.get("creator") as string | null;
+    const receiver = formData.get("receiver") as string | null;
     const password = formData.get("password") as string | null;
     const expirationTime = formData.get("expirationTime") as string | null;
     const wantsToGetNotified = formData.get("wantsToGetNotified") === "true";
@@ -133,6 +135,7 @@ export async function POST(request: Request) {
         id: collectionUuid,
         downloadlink: downloadUrl,
         creator: creator || "anonymous",
+        receiver: receiver || null,
         fileCount: files.length,
         wantsToGetNotified: wantsToGetNotified,
         filesSize: BigInt(
@@ -172,6 +175,22 @@ export async function POST(request: Request) {
             },
           },
         },
+      });
+    }
+
+    // Send notification email to receiver if set
+    if (receiver) {
+      sendMail(
+        receiver,
+        "You have received files on CWX-Transfer",
+        `${
+          creator || "Someone"
+        } has sent you files via CWX-Transfer. Download them here: ${downloadUrl}`,
+        `<h1>You have received files</h1><p>${
+          creator || "Someone"
+        } has sent you files via CWX-Transfer.</p><p><a href="${downloadUrl}">Click here to download</a></p>`
+      ).catch((error) => {
+        console.error("Error sending receiver notification:", error);
       });
     }
 
@@ -238,10 +257,12 @@ async function handleChunkedUpload(
     );
     const chunk = formData.get("chunk") as File | null;
     const creator = formData.get("creator") as string | null;
+    const receiver = formData.get("receiver") as string | null;
     const password = formData.get("password") as string | null;
     const expirationTime = formData.get("expirationTime") as string | null;
     const collectionId = formData.get("collectionId") as string | null;
     const wantsToGetNotified = formData.get("wantsToGetNotified") === "true";
+    const isLastFile = formData.get("isLastFile") === "true";
 
     console.log(
       `Chunked upload request: fileId=${fileId}, chunkNumber=${chunkNumber}, totalChunks=${totalChunks}, collectionId=${collectionId}, fileName=${originalFileName}`
@@ -274,6 +295,7 @@ async function handleChunkedUpload(
           id: collectionUuid,
           downloadlink: downloadUrl,
           creator: creator || "anonymous",
+          receiver: receiver || null,
           fileCount: 0,
           filesSize: BigInt(0),
           password: password || null,
@@ -361,6 +383,26 @@ async function handleChunkedUpload(
           },
         },
       });
+
+      // Send notification email to receiver if set and this is the last file
+      if (receiver && downloadUrl && isLastFile) {
+        const collection = await prisma.collection.findUnique({
+          where: { id: collectionUuid },
+        });
+
+        sendMail(
+          receiver,
+          "You have received files on CWX-Transfer",
+          `${
+            collection?.creator || "Someone"
+          } has sent you files via CWX-Transfer. Download them here: ${downloadUrl}`,
+          `<h1>You have received files</h1><p>${
+            collection?.creator || "Someone"
+          } has sent you files via CWX-Transfer.</p><p><a href="${downloadUrl}">Click here to download</a></p>`
+        ).catch((error) => {
+          console.error("Error sending receiver notification:", error);
+        });
+      }
 
       return Response.json({
         message: "File upload completed",
