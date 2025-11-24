@@ -75,7 +75,6 @@ export default function Home() {
             pendingState.collectionId;
           setDownloadLink(downloadUrl);
         }
-        console.log("Found pending uploads, progress:", progress);
       }
     };
 
@@ -172,7 +171,7 @@ export default function Home() {
           <div className="w-full md:w-1/2 h-full flex items-center justify-start gap-4 md:gap-6 flex-col p-2 md:p-4">
             <div className="w-full flex items-center justify-between flex-col gap-1">
               <h4 className="text-lg md:text-xl w-full text-gray-700">
-                {t("yourEmail")}
+                {t("yourEmail")} <span className="text-red-500">*</span>
               </h4>
               <input
                 className="border border-gray-400 p-2 rounded-md w-full"
@@ -181,6 +180,7 @@ export default function Home() {
                 value={userMail}
                 onChange={(e) => setUserMail(e.target.value)}
                 autoComplete="email"
+                required
               />
             </div>
 

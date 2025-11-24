@@ -156,7 +156,8 @@ const FileSelector: React.FC<FileSelectorProps> = ({
               isDragging ? "text-blue-600" : "text-gray-700"
             }`}
           >
-            {isDragging ? t("dropFilesHere") : t("selectFiles")}
+            {isDragging ? t("dropFilesHere") : t("selectFiles")}{" "}
+            <span className="text-red-500">*</span>
           </h2>
           <p className="text-gray-500 text-sm">{t("orDragDrop")}</p>
           <p className="text-gray-400 text-xs mt-2">

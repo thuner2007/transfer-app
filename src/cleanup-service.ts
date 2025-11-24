@@ -78,6 +78,32 @@ const cleanupExpiredDownloadLinks = async () => {
   }
 };
 
+const cleanupOutdatedVerifications = async () => {
+  try {
+    const result = await prisma.verification.deleteMany({
+      where: {
+        validUntil: { lt: new Date() },
+      },
+    });
+    if (result.count > 0) {
+      console.log(
+        `[${new Date().toISOString()}] Cleaned up ${
+          result.count
+        } outdated verification entries`
+      );
+    } else {
+      console.log(
+        `[${new Date().toISOString()}] Cleanup check completed - no outdated verification entries found`
+      );
+    }
+  } catch (error) {
+    console.error(
+      `[${new Date().toISOString()}] Error cleaning up outdated verifications:`,
+      error
+    );
+  }
+};
+
 class CleanupService {
   private static instance: CleanupService;
   private intervalId: NodeJS.Timeout | null = null;
@@ -107,6 +133,7 @@ class CleanupService {
     // Run cleanup immediately when service starts
     cleanupExpiredVerifications();
     cleanupExpiredDownloadLinks();
+    cleanupOutdatedVerifications();
 
     // Set interval to run every 10 minute (600000 milliseconds)
     this.intervalId = setInterval(async () => {

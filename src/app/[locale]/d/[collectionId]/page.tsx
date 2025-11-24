@@ -112,7 +112,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
 
     try {
       setIsDownloading(true);
-      console.log("Starting download for collection:", collectionId);
 
       const response = await axios.get(
         `${BACKEND_URL}/file/?collectionId=${collectionId}`,
@@ -138,7 +137,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      console.log("Download completed successfully");
     } catch (error) {
       console.error(ERROR_MESSAGES.DOWNLOAD_ALL_FAILED, error);
       // Show user-friendly error message for large file downloads
@@ -161,7 +159,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       const response = await axios.get(
         `${BACKEND_URL}/file/info?collectionId=${collectionId}`
       );
-      console.log("Download info:", response.data);
       setCollectionData(response.data);
 
       // Build folder structure from files
@@ -180,7 +177,6 @@ export default function DownloadPage({ params }: DownloadPageProps) {
       const response = await axios.post(
         `${BACKEND_URL}/file/check-password?collectionId=${collectionId}`
       );
-      console.log("Password check response:", response.data);
       if (response.data.hasPassword) {
         setOpenPasswordModal(true);
         setIsLoading(false);
