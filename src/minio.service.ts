@@ -9,10 +9,8 @@ export class MinioService {
   private minioClient: Minio.Client;
 
   constructor() {
-    // Absolute minimal configuration - matching CLI exactly
-
     // Add region configuration
-    const region = process.env.MINIO_REGION || "eu-central-1"; // Default to us-east-1 if not provided
+    const region = process.env.MINIO_REGION || "eu-central-1";
 
     this.minioClient = new Minio.Client({
       endPoint: process.env.MINIO_ENDPOINT || "localhost",
@@ -20,7 +18,7 @@ export class MinioService {
       useSSL: process.env.MINIO_USE_SSL === "true",
       accessKey: process.env.MINIO_ACCESS_KEY,
       secretKey: process.env.MINIO_SECRET_KEY,
-      region, // Include the region
+      region,
     });
 
     console.log("MinIO Client initialized - with chunked upload support");
@@ -608,9 +606,7 @@ export class MinioService {
     }
   }
 
-  /**
-   * Get file statistics (size, metadata, etc.)
-   */
+  // Get file statistics (size, metadata, etc.)
   async getFileStats(
     bucketName: string,
     fileName: string
@@ -626,9 +622,7 @@ export class MinioService {
     }
   }
 
-  /**
-   * Download a specific byte range of a file (for resumable downloads)
-   */
+  // Download a specific byte range of a file (for resumable downloads)
   async downloadFileRange(
     bucketName: string,
     fileName: string,

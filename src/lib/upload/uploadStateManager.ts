@@ -1,7 +1,4 @@
-/**
- * Manages upload state persistence across sessions
- * Uses IndexedDB for better storage capacity (fallback to localStorage)
- */
+// Manages upload state persistence across sessions. Uses IndexedDB for better storage capacity (fallback to localStorage)
 
 import {
   indexedDBManager,

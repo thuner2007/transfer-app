@@ -1,8 +1,4 @@
-/**
- * IndexedDB Manager for storing large file chunks and download data
- * Better than localStorage for large files (no 5-10MB limit)
- */
-
+// IndexedDB Manager for storing large file chunks and download data. Better than localStorage for large files (no 5-10MB limit)
 const DB_NAME = "TransferAppDB";
 const DB_VERSION = 1;
 const UPLOAD_STORE = "uploadState";
@@ -59,9 +55,7 @@ export interface ChunkData {
 class IndexedDBManager {
   private db: IDBDatabase | null = null;
 
-  /**
-   * Initialize the database
-   */
+  // Initialize the database
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -101,18 +95,14 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Ensure database is initialized
-   */
+  // Ensure database is initialized
   private async ensureInit(): Promise<void> {
     if (!this.db) {
       await this.init();
     }
   }
 
-  /**
-   * Save upload state
-   */
+  // Save upload state
   async saveUploadState(state: UploadStateDB): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -125,9 +115,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Load upload state
-   */
+  // Load upload state
   async loadUploadState(id: string = "current"): Promise<UploadStateDB | null> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -150,9 +138,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Clear upload state
-   */
+  // Clear upload state
   async clearUploadState(id: string = "current"): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -165,9 +151,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Save download state
-   */
+  // Save download states
   async saveDownloadState(state: DownloadStateDB): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -180,9 +164,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Load download state
-   */
+  // Load download state
   async loadDownloadState(id: string): Promise<DownloadStateDB | null> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -205,9 +187,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Clear download state
-   */
+  // Clear download state
   async clearDownloadState(id: string): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -220,9 +200,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Save a chunk
-   */
+  // Save a chunk
   async saveChunk(chunk: ChunkData): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -235,9 +213,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Load a chunk
-   */
+  // Load a chunk
   async loadChunk(id: string): Promise<ChunkData | null> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -250,9 +226,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Load all chunks for a collection
-   */
+  // Load all chunks for a collection
   async loadChunksByCollection(collectionId: string): Promise<ChunkData[]> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -266,9 +240,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Delete a chunk
-   */
+  // Delete a chunk
   async deleteChunk(id: string): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
@@ -281,9 +253,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Delete all chunks for a collection
-   */
+  // Delete all chunks for a collection
   async deleteChunksByCollection(collectionId: string): Promise<void> {
     await this.ensureInit();
     const chunks = await this.loadChunksByCollection(collectionId);
@@ -320,9 +290,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Clean up old chunks (older than 7 days)
-   */
+  // Clean up old chunks (older than 7 days)
   async cleanupOldChunks(): Promise<void> {
     await this.ensureInit();
     const expirationTime = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -347,9 +315,7 @@ class IndexedDBManager {
     });
   }
 
-  /**
-   * Get database size estimate
-   */
+  // Get database size estimate
   async getStorageEstimate(): Promise<{ usage: number; quota: number }> {
     if ("storage" in navigator && "estimate" in navigator.storage) {
       const estimate = await navigator.storage.estimate();
