@@ -35,7 +35,7 @@ npm or yarn
 Copy the example environment file and configure it:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 ### Start Infrastructure Services
