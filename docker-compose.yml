@@ -24,8 +24,23 @@ services:
     networks:
       - transfer-app-network
     ports:
-      - "1337:1337"
-    command: sleep infinity
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+      - DOWNLOAD_SERVICE_URL=${DOWNLOAD_SERVICE_URL}
+    depends_on:
+      - transfer-app-timescaledb
+      - transfer-app-minio
 
   # Minio
   transfer-app-minio:
@@ -41,8 +56,8 @@ services:
           nocopy: false
     command: server /data --console-address :9001
     environment:
-      - MINIO_ROOT_USER=minio_devel
-      - MINIO_ROOT_PASSWORD=minio_devel
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -52,9 +67,9 @@ services:
     container_name: transfer-app-timescaledb
     image: timescale/timescaledb:latest-pg17
     environment:
-      - POSTGRES_USER=cwx_dev
-      - POSTGRES_PASSWORD=cwx_password
-      - POSTGRES_DB=transfer_app
+      - POSTGRES_USER=${POSTGRES_USER:-cwx_dev}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cwx_password}
+      - POSTGRES_DB=${POSTGRES_DB:-transfer_app}
     ports:
       - "5439:5432"
     restart: unless-stopped

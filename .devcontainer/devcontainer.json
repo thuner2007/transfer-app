@@ -22,13 +22,13 @@
       ]
     }
   },
-  "forwardPorts": [1337, 5439, 9000, 9001],
+  "forwardPorts": [3000, 5439, 9000, 9001],
   "portsAttributes": {
     "5439": {
       "label": "TimescaleDB",
       "onAutoForward": "silent"
     },
-    "1337": {
+    "3000": {
       "label": "Application",
       "onAutoForward": "notify"
     },

@@ -30,3 +30,15 @@ RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc \
 
 # Set the default shell to bash
 SHELL ["/bin/bash", "-c"]
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Use node user for better security
+USER node
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -7,6 +7,15 @@ echo "Working directory: $(pwd)"
 echo "Node version: $(node --version)"
 echo "NPM version: $(npm --version)"
 
+echo "Installing dependencies..."
+if [ ! -d "node_modules" ]; then
+    echo "node_modules not found, running npm install..."
+    npm install
+else
+    echo "node_modules found, checking if install is needed..."
+    npm ci --prefer-offline --no-audit || npm install
+fi
+
 echo "Checking Prisma files..."
 if [ ! -d "prisma" ]; then
     echo "ERROR: Prisma directory not found!"
@@ -49,5 +58,21 @@ echo "Verifying migrations..."
 npx prisma migrate status
 
 echo "Database migrations completed successfully!"
+
+echo "Building Next.js application..."
+if [ ! -d ".next" ]; then
+    echo ".next directory not found, running build..."
+    npm run build
+else
+    echo ".next directory found, checking if rebuild is needed..."
+    # Check if package.json is newer than .next directory
+    if [ "package.json" -nt ".next" ] || [ "next.config.ts" -nt ".next" ]; then
+        echo "Configuration changed, rebuilding..."
+        npm run build
+    else
+        echo "Build is up to date, skipping..."
+    fi
+fi
+
 echo "Starting application..."
-exec npx next start
+exec npm run start
