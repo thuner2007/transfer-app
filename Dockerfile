@@ -38,6 +38,9 @@ WORKDIR /workspace
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Ensure the workspace directory has correct ownership
+RUN chown -R node:node /workspace
+
 # Use node user for better security
 USER node
 

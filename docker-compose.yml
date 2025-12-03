@@ -38,6 +38,13 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
       - DOWNLOAD_SERVICE_URL=${DOWNLOAD_SERVICE_URL}
+      - NODE_OPTIONS=--max-old-space-size=4096
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 2G
     depends_on:
       - transfer-app-timescaledb
       - transfer-app-minio

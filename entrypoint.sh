@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Exit when error happens
 set -e
 
@@ -7,13 +7,29 @@ echo "Working directory: $(pwd)"
 echo "Node version: $(node --version)"
 echo "NPM version: $(npm --version)"
 
+# Fix permissions for node_modules if they exist
+if [ -d "node_modules" ]; then
+    echo "Checking node_modules permissions..."
+    # Check if we can write to node_modules
+    if [ ! -w "node_modules" ]; then
+        echo "WARNING: node_modules is not writable, this may cause issues"
+    fi
+fi
+
 echo "Installing dependencies..."
 if [ ! -d "node_modules" ]; then
     echo "node_modules not found, running npm install..."
-    npm install
+    npm install --unsafe-perm
 else
     echo "node_modules found, checking if install is needed..."
-    npm ci --prefer-offline --no-audit || npm install
+    # Remove node_modules if can't write to it
+    if [ ! -w "node_modules" ]; then
+        echo "node_modules is not writable, removing and reinstalling..."
+        rm -rf node_modules
+        npm install --unsafe-perm
+    else
+        npm ci --prefer-offline --no-audit --unsafe-perm || npm install --unsafe-perm
+    fi
 fi
 
 echo "Checking Prisma files..."
