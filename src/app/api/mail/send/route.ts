@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       // If entry exists but not verified, return status
       // Update the existing entry with a new code and validity
       const newCode = Math.floor(100000 + Math.random() * 900000); // Generate a new 6-digit code
-      await prisma.verification.update({
+      const updatedEntry = await prisma.verification.update({
         where: { email: email },
         data: {
           code: newCode,
@@ -34,17 +34,25 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Send verification email
-      sendMail(
-        email,
-        "Your Verification Code",
-        `Your code is ${newCode}`,
-        `<h1>Your Verification Code</h1><p>Your code is <b>${newCode}</b></p><p>This code is valid for 15 minutes.</p>`
-      ).catch((error) => {
-        console.error("Error sending email:", error);
-      });
+      console.log("Updated verification code in DB:", updatedEntry.code);
 
-      console.log("Resent verification email to:", email);
+      // Send verification email with the updated code
+      try {
+        await sendMail(
+          email,
+          "Your Verification Code",
+          `Your code is ${updatedEntry.code}`,
+          `<h1>Your Verification Code</h1><p>Your code is <b>${updatedEntry.code}</b></p><p>This code is valid for 15 minutes.</p>`
+        );
+        console.log(
+          "Resent verification email to:",
+          email,
+          "with code:",
+          updatedEntry.code
+        );
+      } catch (error) {
+        console.error("Error sending email:", error);
+      }
 
       return NextResponse.json({ verifyStatus: "pending" }, { status: 200 });
     }
